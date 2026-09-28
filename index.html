@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#17151a">
+<meta name="robots" content="noindex">
+<meta name="description" content="Pets Fashion 360. Prototipo del sistema de gestión preparado por EnLínea Solutions.">
+<title>Pets Fashion 360</title>
+<link rel="icon" href="./assets/pf-mark.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./pf-styles.css?v=1">
+</head>
+<body>
+<div id="gate" hidden>
+  <div class="gate-left">
+    <div class="gate-brand"><img src="./assets/pf-mark.png" alt=""><div>PetsFashion<small>360 · SISTEMA DE GESTIÓN</small></div></div>
+    <h1>Prototipo del sistema de gestión</h1>
+    <p>Una versión de prueba construida para Pets Fashion, con datos de ejemplo. Tres cosas para probar en dos minutos.</p>
+    <ol>
+      <li>Abrir el radar de recompra y ver el mensaje que le llega al cliente cuando a su perro se le está acabando el alimento.</li>
+      <li>Cobrar una venta en la caja y ver cómo el sistema sugiere lo que a esa familia ya le toca.</li>
+      <li>Revisar los reportes y descubrir qué día de la semana conviene llenar la peluquería.</li>
+    </ol>
+    <div class="gate-foot">Preparado para Pets Fashion<br>EnLínea Solutions</div>
+  </div>
+  <div class="gate-right">
+    <label for="gate-input">Clave de acceso</label>
+    <input id="gate-input" type="password" autocomplete="off" spellcheck="false">
+    <button id="gate-btn">Entrar al sistema</button>
+    <div id="gate-error" role="alert"></div>
+    <p class="gate-note">Diseño no oficial. Las cifras, familias y mascotas que verá adentro son de ejemplo. La familia Valdés usa las compras reales de Juan Valdés como cliente de la tienda.</p>
+  </div>
+</div>
+<div id="app"></div>
+<div id="overlay-root"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="./pf-data.js?v=1"></script>
+<script src="./pf-app.js?v=1"></script>
+</body>
+</html>
