@@ -6,7 +6,7 @@ const KEY='pfs-v1',ACCESS=['PETSFASHION','PETS360'];
 
 /* ---------- Estado guardado ---------- */
 let st={};try{st=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){st={}}
-st=Object.assign({sent:{},newSales:[],appts:[],orders:[],orderStatus:{},autos:{},newProducts:[],chats:{},dismissed:{}},st);
+st=Object.assign({sent:{},newSales:[],appts:[],orders:[],orderStatus:{},autos:{},newProducts:[],chats:{},dismissed:{},role:'Dueño',recep:[],recepDone:[],consults:{},newFams:[],newRefs:[],refUsed:{},creditUsed:{}},st);
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}};
 let ver=1;const bump=()=>{ver++;cache={}};let cache={};
 
@@ -74,6 +74,9 @@ const I={
  user:c(12,8,4)+' M4 21a8 8 0 0 1 16 0',
  settings:c(12,12,3)+' M12 2v3 M12 19v3 M2 12h3 M19 12h3 M4.9 4.9 7 7 M17 17l2.1 2.1 M4.9 19.1 7 17 M17 7l2.1-2.1',
  phone:'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2',
+ info:c(12,12,9)+' M12 11v6 M12 7.5h.01',
+ mic:'M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3z M5 11a7 7 0 0 0 14 0 M12 18v3',
+ cam:'M4 8h3l2-3h6l2 3h3v11H4z '+c(12,13,3.5),
  reset:'M4 4v6h6 M20 12a8 8 0 0 0-14.9-4L4 10 M20 20v-6h-6 M4 12a8 8 0 0 0 14.9 4l1.1-2'
 };
 const ic=(n,cls='')=>`<svg class="icon ${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${I[n]||I.grid}"/></svg>`;
@@ -219,8 +222,8 @@ function msgFor(o){
 /* ---------- Navegación ---------- */
 const NAV=[
  ['', [['hoy','grid','Hoy']]],
- ['CRECIMIENTO',[['radar','radar','Radar de recompra'],['automatizaciones','mega','Automatizaciones']]],
- ['OPERACIÓN',[['agenda','calendar','Agenda'],['caja','cash','Caja'],['facturacion','receipt','Facturación DGI'],['pedidos','truck','Pedidos y delivery'],['inventario','box','Inventario']]],
+ ['CRECIMIENTO',[['radar','radar','Radar de recompra'],['recomendados','gift','Recomendados'],['automatizaciones','mega','Automatizaciones']]],
+ ['OPERACIÓN',[['agenda','calendar','Agenda'],['clinica','steth','Clínica veterinaria'],['caja','cash','Caja y recepción'],['facturacion','receipt','Facturación DGI'],['pedidos','truck','Pedidos y delivery'],['inventario','box','Inventario']]],
  ['CLIENTES',[['familias','users','Familias y mascotas'],['conversaciones','chat','Conversaciones']]],
  ['DIRECCIÓN',[['reportes','chart','Reportes']]]
 ];
@@ -231,13 +234,14 @@ function shell(){
   const pend=activeOpps().filter(o=>!st.sent[o.id]).length;
   const unread=PF.conv.reduce((a,c)=>a+(c.unread||0),0);
   const pedidos=PF.orders.filter(o=>o.status==='Nuevo'||o.status==='Pagado').length;
-  const count=id=>id==='radar'?`<span class="nav-count">${pend}</span>`:id==='conversaciones'&&unread?`<span class="nav-count soft">${unread}</span>`:id==='pedidos'&&pedidos?`<span class="nav-count soft">${pedidos}</span>`:'';
-  return `<aside class="sidebar"><a class="brand" href="#hoy"><img src="./assets/pf-mark.png" alt="Pets Fashion"><span><b>PetsFashion</b><small>SISTEMA DE GESTIÓN</small></span></a>
-  <nav>${NAV.map(([g,items])=>`${g?`<div class="nav-group">${g}</div>`:''}${items.map(([id,icn,l])=>`<a href="#${id}" class="nav-item ${route===id?'active':''}">${ic(icn)}<span>${l}</span>${count(id)}</a>`).join('')}`).join('')}</nav>
-  <button class="ai-launch" data-a="ai">${ic('spark')}<div>Pets Fashion IA<small>Pregúntele a sus datos</small></div></button>
-  <div class="side-foot">${ic('user')}<div><b>Gerencia</b>Perfil de prueba</div><span class="dot" title="Prototipo activo"></span></div></aside>
+  const rq=rqAll().length;
+  const count=id=>id==='caja'&&rq?`<span class="nav-count">${rq}</span>`:id==='radar'?`<span class="nav-count">${pend}</span>`:id==='conversaciones'&&unread?`<span class="nav-count soft">${unread}</span>`:id==='pedidos'&&pedidos?`<span class="nav-count soft">${pedidos}</span>`:'';
+  return `<aside class="sidebar"><a class="brand" href="#${ROLES[role()].home}"><img src="./assets/pf-mark.png" alt="Pets Fashion"><span><b>PetsFashion</b><small>SISTEMA DE GESTIÓN</small></span></a>
+  <nav>${NAV.map(([g,all])=>{const items=all.filter(n=>allowed(n[0]));return items.length?`${g?`<div class="nav-group">${g}</div>`:''}${items.map(([id,icn,l])=>`<a href="#${id}" class="nav-item ${route===id?'active':''}">${ic(icn)}<span>${l}</span>${count(id)}</a>`).join('')}`:''}).join('')}</nav>
+  ${role()==='Dueño'||role()==='Recepción'?`<button class="ai-launch" data-a="ai">`:`<button class="ai-launch" data-a="ai" style="margin-top:18px">`}${ic('spark')}<div>Pets Fashion IA<small>Pregúntele a sus datos</small></div></button>
+  <div class="side-foot">${ic('user')}<div style="flex:1;min-width:0"><b>Perfil de prueba</b><select id="role-sel" aria-label="Perfil de prueba">${Object.keys(ROLES).map(r=>`<option ${role()===r?'selected':''}>${r}</option>`).join('')}</select></div><span class="dot" title="Prototipo activo"></span></div></aside>
   <div class="main-shell"><header class="topbar"><div class="crumb"><button class="icon-btn menu-btn" data-a="menu" aria-label="Abrir menú">${ic('menu')}</button><span>Pets Fashion</span>${ic('chev')}<strong>${LABEL[route]}</strong></div>
-  <div class="top-actions"><button class="search-btn" data-a="search" aria-label="Buscar">${ic('search')}<span>Buscar familia, mascota o producto</span><kbd>⌘ K</kbd></button><span class="proto-tag"><i></i>PROTOTIPO</span><button class="icon-btn" data-a="ai" aria-label="Asistente">${ic('spark')}<b></b></button></div></header>
+  <div class="top-actions"><button class="search-btn" data-a="search" aria-label="Buscar">${ic('search')}<span>Buscar familia, mascota o producto</span><kbd>⌘ K</kbd></button>${role()!=='Dueño'?`<span class="chip pink role-chip">${ic('user')}${role()}</span>`:''}<span class="proto-tag"><i></i>PROTOTIPO</span><button class="icon-btn" data-a="ai" aria-label="Asistente">${ic('spark')}<b></b></button></div></header>
   <main id="main">${view()}</main>
   <footer class="app-foot"><span>Pets Fashion · Prototipo con datos de ejemplo</span><span>EnLínea Solutions · <button class="link" data-a="reset" style="font-size:12px">Restablecer datos de ejemplo</button></span></footer></div>`;
 }
@@ -245,10 +249,10 @@ function view(){
   switch(route){
     case 'radar':return vRadar();case 'automatizaciones':return vAutos();case 'agenda':return vAgenda();case 'caja':return vCaja();
     case 'pedidos':return vPedidos();case 'inventario':return vInventario();case 'familias':return vFamilias();case 'conversaciones':return vConv();
-    case 'reportes':return vReportes();case 'facturacion':return vFactura();default:return vHoy();
+    case 'reportes':return vReportes();case 'facturacion':return vFactura();case 'clinica':return vClinica();case 'recomendados':return vRecom();default:return vHoy();
   }
 }
-function render(keepScroll){const y=window.scrollY;document.getElementById('app').innerHTML=shell();document.body.classList.remove('nav-open');if(keepScroll)window.scrollTo(0,y);else window.scrollTo(0,0);afterRender()}
+function render(keepScroll){if(!allowed(route)){route=ROLES[role()].home;try{history.replaceState(null,'','#'+route)}catch(e){}}const y=window.scrollY;document.getElementById('app').innerHTML=shell();document.body.classList.remove('nav-open');if(keepScroll)window.scrollTo(0,y);else window.scrollTo(0,0);afterRender()}
 function rerender(){render(true)}
 function afterRender(){
   const r=document.getElementById('scen');if(r)r.oninput=e=>{scen=+e.target.value;const box=document.getElementById('scen-out');if(box)box.innerHTML=scenOut()};
@@ -258,6 +262,8 @@ function afterRender(){
   const pc=document.getElementById('pos-client');if(pc)pc.onchange=e=>{pos.hh=e.target.value||null;pos.pets=pos.hh?HHMAP[pos.hh].pets.slice(0,1):[];rerender()};
   const pz=document.getElementById('pos-zone');if(pz)pz.onchange=e=>{pos.zone=e.target.value;rerender()};
   const cb=document.querySelector('.chat-body');if(cb)cb.scrollTop=cb.scrollHeight;
+  const rs=document.getElementById('role-sel');if(rs)rs.onchange=e=>{st.role=e.target.value;save();const R0=ROLES[st.role];if(R0.ag)agTab=R0.ag;toast('Ahora ve el sistema como '+st.role);if(location.hash.slice(1)===R0.home)render();else location.hash=R0.home};
+  const tx=document.getElementById('clin-tx');if(tx)tx.scrollTop=tx.scrollHeight;
 }
 window.addEventListener('hashchange',()=>{route=(location.hash.slice(1)||'hoy').split('?')[0];if(!LABEL[route])route='hoy';closeOverlay();render()});
 
@@ -529,7 +535,7 @@ function vAutos(){
 let agTab='Peluquería';
 function vAgenda(){
   const radarAppts=allAppts().sort((a,b)=>a.t-b.t);
-  return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Agenda</h1><p>Peluquería, clínica, hotel y daycare en un solo lugar. Lo que agenda el radar por WhatsApp entra aquí sin que nadie lo copie.</p></div><div class="head-actions"><button class="btn primary" data-a="new-appt">${ic('plus')}Nueva cita</button></div></div>
+  return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Agenda</h1><p>Peluquería, clínica, hotel y daycare en un solo lugar. Lo que agenda el radar por WhatsApp entra aquí sin que nadie lo copie.</p></div><div class="head-actions"><button class="btn primary" data-a="new-appt">${ic('plus')}Nueva cita</button></div></div>${roleNote()}
   <div class="tabs" style="margin-bottom:16px">${['Peluquería','Clínica','Hotel y daycare'].map(t=>`<button class="tab ${agTab===t?'on':''}" data-a="agtab" data-t="${t}">${t}</button>`).join('')}</div>
   ${agTab==='Peluquería'?agGroom():agTab==='Clínica'?agClinic():agHotel()}
   ${radarAppts.length?`<section class="card" style="margin-top:18px"><div class="list-head"><div><h2 style="font-size:17px">Agendadas por el radar</h2><span class="muted" style="font-size:12.5px">Citas y reservas que el cliente confirmó por WhatsApp</span></div></div><div class="table-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Mascotas</th><th>Servicio</th><th>Área</th><th>Con</th><th>Origen</th></tr></thead><tbody>${radarAppts.map(a=>`<tr class="click" data-a="fam" data-id="${a.hh}"><td><b>${esc(a.label)}</b></td><td><div class="who">${pstack(a.pets)}<div><strong>${esc(names(a.pets))}</strong><small>${esc(HHMAP[a.hh].name)}</small></div></div></td><td>${esc(a.svc)}</td><td>${a.area}</td><td>${esc(a.who)}</td><td><span class="chip pink">${ic('radar')}Radar</span></td></tr>`).join('')}</tbody></table></div></section>`:''}`;
@@ -537,9 +543,9 @@ function vAgenda(){
 function agGroom(){
   const hNow=PF.hourNow;const H0=8,H1=18,PX=64;
   const cols=PF.GROOMERS.map(g=>{const list=PF.groomToday.filter(a=>a.who===g);return {g,list,busy:list.reduce((x,a)=>x+a.dur,0)}});
-  return `<section class="card"><div class="list-head"><div><h2 style="font-size:17px">Hoy · ${PF.groomToday.length} citas de peluquería</h2><span class="muted" style="font-size:12.5px">Toque una cita para ver la ficha de la familia</span></div><div class="tabs"><span class="chip ok">${PF.groomToday.filter(a=>a.status==='Terminado').length} terminadas</span><span class="chip pink">${PF.groomToday.filter(a=>a.status==='En proceso').length} en proceso</span><span class="chip warn">${PF.groomToday.filter(a=>a.status==='Por confirmar').length} por confirmar</span></div></div>
+  return `<section class="card"><div class="list-head"><div><h2 style="font-size:17px">Hoy · ${PF.groomToday.length} citas de peluquería</h2><span class="muted" style="font-size:12.5px">Toque una cita para abrir el servicio como lo ve el peluquero</span></div><div class="tabs"><span class="chip ok">${PF.groomToday.filter(a=>a.status==='Terminado').length} terminadas</span><span class="chip pink">${PF.groomToday.filter(a=>a.status==='En proceso').length} en proceso</span><span class="chip warn">${PF.groomToday.filter(a=>a.status==='Por confirmar').length} por confirmar</span></div></div>
   <div class="table-wrap"><div class="board"><div><div class="board-head"></div><div class="board-hours">${Array.from({length:H1-H0},(_,i)=>`<div class="hour">${hhmm(H0+i).replace(':00','')}</div>`).join('')}</div></div>
-  ${cols.map(c=>`<div class="board-col"><div class="board-head">${ic('scissors')}<div>${c.g}<small>${c.list.length} citas · ${Math.round(c.busy/(H1-H0)*100)}% del día</small></div></div><div class="slots" style="height:${(H1-H0)*PX}px">${hNow>=H0&&hNow<=H1?`<div class="now-line" style="top:${(hNow-H0)*PX}px"></div>`:''}${Array.from({length:H1-H0},(_,i)=>`<div class="hour" style="position:absolute;left:0;right:0;top:${i*PX}px"></div>`).join('')}${c.list.map(a=>{const p=PETMAP[a.pet];return `<div class="appt ${a.status==='Terminado'?'done':a.status==='En proceso'?'now':''}" style="top:${(a.h-H0)*PX+3}px;height:${a.dur*PX-6}px" data-a="fam" data-id="${a.hh}">${pav(p,'sm')}<div style="min-width:0"><strong>${esc(p.name)} · ${hhmm(a.h)}</strong><small>${esc(CAT[a.svc].name)}</small><small>${esc(p.breed)} · ${esc(HHMAP[a.hh].name)}</small></div></div>`}).join('')}</div></div>`).join('')}</div></div></section>`;
+  ${cols.map(c=>`<div class="board-col"><div class="board-head">${ic('scissors')}<div>${c.g}<small>${c.list.length} citas · ${Math.round(c.busy/(H1-H0)*100)}% del día</small></div></div><div class="slots" style="height:${(H1-H0)*PX}px">${hNow>=H0&&hNow<=H1?`<div class="now-line" style="top:${(hNow-H0)*PX}px"></div>`:''}${Array.from({length:H1-H0},(_,i)=>`<div class="hour" style="position:absolute;left:0;right:0;top:${i*PX}px"></div>`).join('')}${c.list.map(a=>{const p=PETMAP[a.pet];return `<div class="appt ${a.status==='Terminado'?'done':a.status==='En proceso'?'now':''}" style="top:${(a.h-H0)*PX+3}px;height:${a.dur*PX-6}px" data-a="groom" data-id="${a.id}">${pav(p,'sm')}<div style="min-width:0"><strong>${esc(p.name)} · ${hhmm(a.h)}</strong><small>${esc(CAT[a.svc].name)}</small><small>${esc(p.breed)} · ${esc(HHMAP[a.hh].name)}</small></div></div>`}).join('')}</div></div>`).join('')}</div></div></section>`;
 }
 function agClinic(){
   return `<section class="card panel"><div class="panel-head"><div><h2>Clínica · hoy</h2><p>${PF.clinicToday.length} consultas con ${PF.VETS.join(' y ')}</p></div></div><div class="timeline">${PF.clinicToday.map(a=>{const p=PETMAP[a.pet];const vx=p.vax.map(v=>`${v.name} ${dd(v.due)<0?'vencida':'hasta '+fd(v.due)}`).join(' · ');return `<div class="tl-row ${a.status==='Terminado'?'done':''}" data-a="fam" data-id="${a.hh}" style="cursor:pointer"><div class="tl-time">${hhmm(a.h)}<small>${esc(a.who)}</small></div>${pav(p,'md')}<div class="tl-main"><strong>${esc(p.name)} · ${esc(a.reason)}</strong><small>${esc(p.breed)}${p.weight?', '+p.weight+' kg':''} · ${esc(HHMAP[a.hh].name)} · ${esc(vx)}</small></div><span class="chip ${a.status==='En proceso'?'pink':a.status==='Terminado'?'':a.status==='Por confirmar'?'warn':'ok'}">${a.status}</span></div>`}).join('')}</div></section>`;
@@ -559,7 +565,7 @@ function catMatch(x){if(posCat==='Todo')return true;if(posCat==='Alimento')retur
 function posTiles(){
   const q=posQ.trim().toLowerCase();
   const items=[...PF.products,...PF.services].filter(x=>!x.gift&&catMatch(x)&&(!q||x.name.toLowerCase().includes(q)||(x.brand||'').toLowerCase().includes(q)));
-  return items.slice(0,60).map(x=>`<button class="tile" data-a="pos-add" data-id="${x.id}"><small>${esc(x.cat)}</small><strong>${esc(x.name)}</strong><div><b>${money(x.price)}</b>${x.kind==='producto'?`<em class="${x.stock<=x.min?'low':''}">${x.stock} en existencia</em>`:`<em>${x.tax?'+ ITBMS':''}</em>`}</div></button>`).join('')||'<div class="empty">No hay resultados.</div>';
+  return items.slice(0,60).map(x=>`<button class="tile" data-a="pos-add" data-id="${x.id}">${x.kind==='producto'&&pfoto(x)?`<img class="tile-img" src="${pfoto(x)}" alt="" loading="lazy">`:''}<small>${esc(x.cat)}</small><strong>${esc(x.name)}</strong><div><b>${money(x.price)}</b>${x.kind==='producto'?`<em class="${x.stock<=x.min?'low':''}">${x.stock} en existencia</em>`:`<em>${x.tax?'+ ITBMS':''}</em>`}</div></button>`).join('')||'<div class="empty">No hay resultados.</div>';
 }
 function posCalc(){
   const lines=pos.lines.map(l=>({...l,it:CAT[l.id]}));
@@ -572,7 +578,7 @@ function vCaja(){
   const c=posCalc();const hh=pos.hh?HHMAP[pos.hh]:null;
   const sugs=hh?radar().filter(o=>o.hh.id===hh.id&&!['cumple','hotel'].includes(o.type)):[];
   const opts=PF.households.slice().sort((a,b)=>(b.real?1:0)-(a.real?1:0)||a.name.localeCompare(b.name));
-  return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Caja</h1><p>Productos y servicios en la misma venta, ligados a la familia y a cada mascota. Así el radar aprende de cada ticket.</p></div></div>
+  return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Caja y recepción</h1><p>Productos y servicios en la misma venta, ligados a la familia y a cada mascota. Lo que manda la clínica, la peluquería o el hotel llega aquí listo para cobrar.</p></div></div>${roleNote()}${rqSection()}
   <div class="pos"><section><div style="display:flex;gap:10px;flex-wrap:wrap"><div class="search-field" style="flex:1;min-width:220px">${ic('search')}<input id="pos-search" class="input" placeholder="Buscar producto o servicio" value="${esc(posQ)}"></div></div>
   <div class="tabs" style="margin-top:12px">${POSCATS.map(k=>`<button class="tab ${posCat===k?'on':''}" data-a="pos-cat" data-c="${k}">${k}</button>`).join('')}</div>
   <div class="pos-grid" id="pos-grid">${posTiles()}</div></section>
@@ -580,8 +586,11 @@ function vCaja(){
   <div class="field"><label for="pos-client">Familia</label><select id="pos-client" class="select"><option value="">Cliente de mostrador</option>${opts.map(h=>`<option value="${h.id}" ${pos.hh===h.id?'selected':''}>${esc(h.name)} · ${esc(names(h.pets))}</option>`).join('')}</select></div>
   ${hh?`<div class="field"><label>Mascotas de esta venta</label><div class="pets-pick">${petsOf(hh).map(p=>`<button class="${pos.pets.includes(p.id)?'on':''}" data-a="pos-pet" data-id="${p.id}">${pav(p,'sm')}${esc(p.name)}</button>`).join('')}</div></div>`:''}
   ${sugs.length?`<div class="suggest"><b>${ic('spark')}Le toca a esta familia</b>${sugs.slice(0,4).map(o=>`<div class="sug"><span>${esc(TYPES[o.type].short)} · ${esc(names(o.pets))}<br><small class="muted">${esc(o.type==='bano'?CAT[PETMAP[o.pets[0]].groomSvc].name:o.prod?o.prod.name:o.vax?o.vax.map(x=>x.v.name).join(', '):'')}</small></span><button class="btn xs ghost" data-a="pos-sug" data-id="${o.id}">${ic('plus')}Agregar</button></div>`).join('')}</div>`:''}
+  ${hh&&refPending(hh.id)&&!pos.lines.some(l=>String(l.id).startsWith('rd-'))?`<div class="suggest" style="background:#eef7f2;border-color:#bfe3cf"><b style="color:var(--ok)">${ic('gift')}Viene recomendado por ${esc(HHMAP[refPending(hh.id).from].name)}</b><div class="sug"><span class="muted">50% en su primer servicio. A quien recomendó le llega el crédito al cobrar.</span><button class="btn xs ghost" data-a="ref-disc">${ic('plus')}Aplicar</button></div></div>`:''}
+  ${hh&&hh.refCredit>0&&!pos.lines.some(l=>String(l.id).startsWith('rc-'))?`<div class="suggest" style="background:#eef7f2;border-color:#bfe3cf"><b style="color:var(--ok)">${ic('gift')}Crédito de recomendados ${money(hh.refCredit)}</b><div class="sug"><span class="muted">Lo ganó por recomendar clientes nuevos. Se usa en servicios.</span><button class="btn xs ghost" data-a="ref-credit">${ic('plus')}Usar</button></div></div>`:''}
+  ${hh&&rqAll().some(t=>t.hh===hh.id&&!(pos.tickets||[]).includes(t.id))?`<div class="suggest"><b>${ic('receipt')}Esta familia tiene otra cuenta en recepción</b>${rqAll().filter(t=>t.hh===hh.id&&!(pos.tickets||[]).includes(t.id)).map(t=>`<div class="sug"><span>${t.area} · ${esc(names(t.pets))}<br><small class="muted">${money(rqTotal(t))}</small></span><button class="btn xs ghost" data-a="rq-load" data-id="${t.id}">${ic('plus')}Agregar</button></div>`).join('')}</div>`:''}
   ${hh&&hh.balance>0?`<div class="suggest" style="background:#fff7e8;border-color:#f1dcb0"><b style="color:var(--warn)">${ic('receipt')}Saldo pendiente ${money(hh.balance)}</b><div class="sug"><span class="muted">Cargos abiertos de peluquería, hotel o daycare.</span><button class="btn xs ghost" data-a="statement" data-id="${hh.id}">Ver estado</button></div></div>`:''}
-  <div class="lines">${c.lines.length?c.lines.map((l,i)=>`<div class="line"><div><b>${esc(l.it.name)}</b><small>${money(l.it.price)}${l.it.tax?' + ITBMS':''}${l.pets&&l.pets.length?' · '+esc(names(l.pets)):''}</small></div><div class="qty"><button data-a="pos-qty" data-i="${i}" data-d="-1">−</button><span>${l.q}</span><button data-a="pos-qty" data-i="${i}" data-d="1">+</button></div><b>${money(l.it.price*l.q)}</b></div>`).join('')+(c.gift?`<div class="line"><div><b class="gift">Snack de regalo</b><small>Por alimento de 1.5 kg o más, regla de la tienda</small></div><span></span><b class="gift">$0.00</b></div>`:''):'<div class="empty">Toque un producto o servicio para agregarlo.</div>'}</div>
+  <div class="lines">${c.lines.length?c.lines.map((l,i)=>`<div class="line"><div><b>${esc(l.it.name)}</b><small>${mf(l.it.price)}${l.it.tax&&l.it.price>0?' + ITBMS':''}${l.pets&&l.pets.length?' · '+esc(names(l.pets)):''}</small></div><div class="qty"><button data-a="pos-qty" data-i="${i}" data-d="-1">−</button><span>${l.q}</span><button data-a="pos-qty" data-i="${i}" data-d="1">+</button></div><b>${mf(l.it.price*l.q)}</b></div>`).join('')+(c.gift?`<div class="line"><div><b class="gift">Snack de regalo</b><small>Por alimento de 1.5 kg o más, regla de la tienda</small></div><span></span><b class="gift">$0.00</b></div>`:''):'<div class="empty">Toque un producto o servicio para agregarlo.</div>'}</div>
   <div class="toggle-row"><span>Delivery</span><button class="switch ${pos.deliv?'on':''}" data-a="pos-deliv" aria-label="Delivery"></button></div>
   ${pos.deliv?`<div class="field"><select id="pos-zone" class="select"><option value="">Zona de entrega</option>${PF.ZONES.map(z=>`<option ${pos.zone===z?'selected':''}>${z}</option>`).join('')}</select><small class="muted" style="font-size:12px">${c.freeDel?'Delivery gratis, pasa de 20 dólares y la zona está en la lista.':'Gratis desde 20 dólares en San Francisco, Costa del Este, Obarrio, Punta Pacífica, Paitilla, Marbella, Coco del Mar, Carrasquilla, El Carmen y Avenida Balboa.'}</small></div>`:''}
   <div class="tot"><div><span class="muted">Subtotal</span><span>${money(c.sub)}</span></div><div><span class="muted">ITBMS 7%</span><span>${money(c.tax)}</span></div>${pos.deliv?`<div><span class="muted">Delivery</span><span>${c.freeDel?'Gratis':'Según zona'}</span></div>`:''}<div class="big"><span>Total</span><span>${money(c.total)}</span></div></div>
@@ -602,7 +611,10 @@ function posCharge(){
   const lines=c.lines.map(l=>({id:l.id,name:l.it.name,q:l.q,price:l.it.price,tax:l.it.tax,pets:l.pets||[]}));
   if(c.gift)lines.push({id:'s0',name:'Snack de regalo',q:1,price:0,tax:.07,pets:[]});
   const area=c.lines.some(l=>l.it.area==='Peluquería')?'Peluquería':c.lines.some(l=>l.it.area==='Clínica')?'Clínica':c.lines.some(l=>l.it.area==='Hotel')?'Hotel':c.lines.some(l=>l.it.area==='Daycare')?'Daycare':'Tienda';
-  const sale=mkSale(hhId,lines,{area,channel:'Tienda',pay:pos.pay});sale.fiscal=pos.fiscal==='nom'&&pos.hh?'nom':'cf';
+  const sale=mkSale(hhId,lines,{area,channel:'Tienda',pay:pos.pay});
+  if(pos.tickets&&pos.tickets.length){st.recepDone=[...(st.recepDone||[]),...pos.tickets]}
+  const rd=lines.find(l=>String(l.id).startsWith('rd-'));if(rd&&pos.hh){const r=refPending(pos.hh);if(r){const svc=CAT[r.svc];const credit=r2(svc.price*.25);r.status='Usó su beneficio';r.disc=r2(svc.price*.5);r.credit=credit;st.refUsed[r.id]={disc:r.disc,credit};const f=HHMAP[r.from];f.refCredit=r2((f.refCredit||0)+credit);setTimeout(()=>toast('Se le cargaron '+money(credit)+' de crédito a '+f.name+' y se le avisó por WhatsApp'),3600)}}
+  if(lines.some(l=>String(l.id).startsWith('rc-'))&&pos.hh){HHMAP[pos.hh].refCredit=0;st.creditUsed[pos.hh]=nowLabel()}sale.fiscal=pos.fiscal==='nom'&&pos.hh?'nom':'cf';
   if(pos.hh){st.newSales.push(sale)}
   applySale(sale,true);
   if(pos.deliv&&pos.hh){const ord={id:'PD-'+(3300+st.orders.length),sale:sale.id,hh:pos.hh,status:'Pagado',channel:'Tienda',total:sale.total,items:sale.lines,zone:pos.zone||HHMAP[pos.hh].zone,time:nowLabel(),fresh:true};st.orders.push(ord);PF.orders.unshift(ord)}
@@ -699,6 +711,272 @@ function downloadMonthCSV(){
   toast('Facturas del mes exportadas, se abren en Excel');
 }
 
+
+/* ---------- Perfiles por rol ---------- */
+const ROLES={
+ 'Dueño':{home:'hoy',nav:null,costs:true,desc:'Ve todo el negocio, incluidos costos, márgenes y reportes.'},
+ 'Recepción':{home:'caja',nav:['hoy','radar','recomendados','agenda','caja','facturacion','pedidos','inventario','familias','conversaciones'],costs:false,desc:'Cobra, agenda y atiende a las familias. No ve costos, márgenes ni reportes.'},
+ 'Veterinario':{home:'clinica',nav:['clinica','agenda','familias','conversaciones'],costs:false,ag:'Clínica',desc:'Solo sus consultas, la agenda de la clínica y las fichas de las mascotas.'},
+ 'Peluquería':{home:'agenda',nav:['agenda','familias'],costs:false,ag:'Peluquería',desc:'Sus citas del día, el checklist de cada baño y las fotos para la familia.'},
+ 'Hotel y daycare':{home:'agenda',nav:['agenda','familias','conversaciones'],costs:false,ag:'Hotel y daycare',desc:'Huéspedes, entradas, salidas y paquetes de daycare.'}
+};
+const role=()=>ROLES[st.role]?st.role:'Dueño';
+const allowed=id=>{const n=ROLES[role()].nav;return !n||n.includes(id)};
+const canCost=()=>ROLES[role()].costs;
+function roleNote(){if(role()==='Dueño')return '';return `<div class="role-note">${ic('shield')}<span><b>Vista de ${role()}.</b> ${ROLES[role()].desc} Cambie el perfil abajo a la izquierda.</span></div>`}
+
+/* ---------- Cuentas en recepción ---------- */
+const rqAll=()=>[...PF.recepcion,...(st.recep||[])].filter(t=>!(st.recepDone||[]).includes(t.id));
+const rqTotal=t=>t.lines.reduce((a,l)=>{const it=CAT[l.id];return a+(it?it.price*l.q*(1+it.tax):0)},0);
+function rqCard(t){
+  const hh=HHMAP[t.hh];const cls={Clínica:'bad',Peluquería:'pink',Hotel:'dark'}[t.area]||'';
+  const other=rqAll().filter(x=>x.hh===t.hh&&x.id!==t.id).length;
+  return `<div class="rq"><div class="rq-top">${pstack(t.pets,'md')}<div><b>${esc(names(t.pets))}</b><small>${esc(hh.name)}</small></div><span class="chip ${cls}">${t.area}</span></div>
+  <small class="muted">${esc(t.who)} · ${esc(t.time)} · ${esc(t.note||'')}</small>
+  <div class="rq-items">${t.lines.map(l=>`<span>${l.q>1?l.q+' × ':''}${esc(CAT[l.id]?CAT[l.id].name:l.id)}</span>`).join('')}</div>
+  <div class="rq-foot"><b>${money(rqTotal(t))}</b><button class="btn pink sm" data-a="rq-load" data-id="${t.id}">${ic('cash')}${pos.tickets&&pos.tickets.includes(t.id)?'En la venta':'Cobrar'}</button></div>${other?`<small class="rq-more">${ic('users')}Esta familia tiene ${other} cuenta${other>1?'s':''} más por cobrar</small>`:''}</div>`;
+}
+function rqSection(){
+  const q=rqAll();
+  return `<section class="recq"><div class="recq-head"><div><h2>Llegan de las áreas, listas para cobrar</h2><p>Clínica, peluquería y hotel mandan su cuenta aquí. Lo de la tienda se suma a la misma venta y sale una sola factura.</p></div><span class="chip ${q.length?'pink':'ok'}">${q.length?q.length+' por cobrar':'Todo cobrado'}</span></div>
+  ${q.length?`<div class="recq-list">${q.map(rqCard).join('')}</div>`:'<div class="empty">Todo cobrado. Aquí aparece lo que manden la clínica, la peluquería y el hotel.</div>'}</section>`;
+}
+function rqLoad(id){
+  const t=rqAll().find(x=>x.id===id);if(!t)return;
+  if(pos.hh!==t.hh){pos={hh:t.hh,pets:t.pets.slice(),lines:[],pay:'Yappy',deliv:false,zone:'',fiscal:'cf',tickets:[]}}
+  pos.tickets=pos.tickets||[];if(pos.tickets.includes(t.id))return;
+  pos.tickets.push(t.id);t.pets.forEach(p=>{if(!pos.pets.includes(p))pos.pets.push(p)});
+  t.lines.forEach(l=>posAdd(l.id,l.pets.slice()));
+  const q=pos.lines.find(l=>l.id===t.lines[0].id);
+  t.lines.forEach(l=>{const x=pos.lines.find(y=>y.id===l.id&&JSON.stringify(y.pets)===JSON.stringify(l.pets));if(x&&l.q>1)x.q=Math.max(x.q,l.q)});
+  toast('Cuenta de '+t.area.toLowerCase()+' de '+names(t.pets)+' cargada en la venta');
+}
+
+/* ---------- Clínica veterinaria con IA ---------- */
+let clin={sel:null,run:null};
+const LABS=['l1','l2','l3','l4'];
+function emptyF(){return {motivo:'',anamnesis:[],peso:'',temp:'',fc:'',mucosas:'',hidra:'',examen:'',dx:'',labs:[],labNote:'',tx:[],ind:[],control:'',cargos:[]}}
+function consultScript(a){
+  const p=PETMAP[a.pet],hh=HHMAP[a.hh],o=first(hh),fem=p.sex==='Hembra',g=(x,y)=>fem?x:y,V='vet',D='fam';
+  const fg=PF.foodGroups.find(x=>x.pets.includes(p.id)&&x.buys.length);
+  if(a.script==='gastro'){const next=TODAY+14*DAY;return {tpl:'Consulta general',base:['v9'],control:true,next,lines:[
+   [V,`Buenos días, ${o}. Cuénteme qué le pasa a ${p.name}.`],
+   [D,`Desde anoche está vomitando. Ya van como cuatro veces y hoy no ha querido comer nada.`,{motivo:'Vómitos desde anoche, cuatro episodios. No come desde ayer.'}],
+   [V,`El vómito es de comida o más bien espuma amarilla?`],
+   [D,`Al principio era comida, ahora es como espuma amarilla.`,{anamnesis:'Vómito alimenticio al inicio, luego bilioso.'}],
+   [V,`Ha tenido diarrea? Está tomando agua?`],
+   [D,`Diarrea no. Agua sí toma, pero poquito.`,{anamnesis:'Sin diarrea. Toma poca agua.'}],
+   [V,`Comió algo distinto ayer?`],
+   [D,`Anoche hicimos parrillada y le dieron pedazos de carne con grasa.`,{anamnesis:'Comió carne con grasa anoche.'+(fg?' Dieta habitual '+shortName(CAT[fg.product])+'.':'')}],
+   [V,`Vamos a revisar${g('la','lo')}. Pesa ${p.weight} kilos y tiene 39.4 de temperatura, un poco alta.`,{peso:p.weight+' kg',temp:'39.4 °C'}],
+   [V,`Mucosas un poco secas, le calculo cinco por ciento de deshidratación. Frecuencia cardíaca 128.`,{mucosas:'Rosadas, algo secas',hidra:'Leve, 5%',fc:'128 lpm'}],
+   [V,`Le duele un poco cuando le toco el abdomen, pero no siento nada raro.`,{examen:'Dolor leve a la palpación abdominal. Sin masas palpables.'}],
+   [D,`Es grave, doctora?`],
+   [V,`Parece una gastroenteritis por la grasa que comió. Igual quiero descartar que el hígado o el páncreas estén afectados.`,{dx:'Gastroenteritis aguda por indiscreción alimentaria. Descartar pancreatitis.'}],
+   [V,`Le voy a mandar un hemograma completo, una glicemia en ayunas y un perfil hepático.`,{labs:['l1','l2','l3']}],
+   [V,`Si mañana sigue vomitando, le hacemos un ultrasonido abdominal.`,{labNote:'Ultrasonido abdominal solo si siguen los vómitos mañana.'}],
+   [V,`Ahora le pongo una inyección para el vómito y suero debajo de la piel para hidratar${g('la','lo')}.`,{tx:['Antiemético inyectable, dosis única en la clínica','Fluidoterapia subcutánea en la clínica'],cargos:[['v21',1],['v20',1]]}],
+   [V,`En la casa, nada de comida por 12 horas y agua en poquitas cantidades.`,{ind:'Nada de comida por 12 horas. Agua en poca cantidad y seguido.'}],
+   [V,`Después le da la dieta gastrointestinal en lata, poquito y varias veces al día por cinco días.`,{tx:['Royal Canin Gastrointestinal lata, porciones pequeñas 4 veces al día por 5 días'],ind:'Dieta gastrointestinal en porciones pequeñas por 5 días.',cargos:[['x8',6]]}],
+   [D,`Perfecto. Y cuándo ${g('la','lo')} traigo otra vez?`],
+   [V,`En dos semanas para control y revisamos los resultados. Si vuelve a vomitar o ${g('la','lo')} ve decaíd${g('a','o')}, me escribe de una vez.`,{control:cap(DIAS[new Date(next).getDay()])+' '+fdl(next)+', control y resultados de laboratorio',ind:`Si vuelve a vomitar o está decaíd${g('a','o')}, escribir de inmediato por WhatsApp.`}],
+   [D,`Muchas gracias, doctora.`]]}}
+  if(['v10','v11','v12'].includes(a.svc)){const vn=CAT[a.svc].name.replace('Vacuna ',''),next=TODAY+365*DAY;return {tpl:'Vacunación',base:['v9',a.svc],control:false,next,lines:[
+   [V,`Hola, ${o}. Hoy le toca a ${p.name} su vacuna ${vn}. Cómo ha estado?`],
+   [D,`Muy bien, comiendo normal y con mucha energía.`,{motivo:'Vacunación, '+vn+'.',anamnesis:'Sin síntomas. Apetito y energía normales.'}],
+   [V,`Pesa ${p.weight} kilos y tiene 38.6 de temperatura, todo normal.`,{peso:p.weight+' kg',temp:'38.6 °C',mucosas:'Rosadas y húmedas',hidra:'Normal',fc:'110 lpm'}],
+   [V,`Corazón y pulmones bien. Tiene un poco de sarro en los dientes.`,{examen:'Auscultación cardiopulmonar normal. Sarro dental leve.'}],
+   [V,`Le pongo la vacuna ${vn} de una vez.`,{dx:'Paciente sano, apto para vacunación.',tx:['Vacuna '+vn+' aplicada hoy']}],
+   [D,`Perfecto.`],
+   [V,`Le recomiendo una limpieza dental en los próximos meses.`,{ind:'Limpieza dental en los próximos tres meses.'}],
+   [V,`La próxima dosis le toca en un año y el sistema le avisa unos días antes.`,{control:fdl(next)+' de '+new Date(next).getFullYear()+', refuerzo de la vacuna',ind:'Puede tener un poco de sueño hoy, es normal.'}],
+   [D,`Gracias, doctora.`]]}}
+  return null;
+}
+function applyOps(F,ops){const ch=[];if(!ops)return ch;Object.entries(ops).forEach(([k,v])=>{ch.push(k);if(Array.isArray(F[k])){(Array.isArray(v)?v:[v]).forEach(x=>{if(k==='labs'){if(!F.labs.includes(x))F.labs.push(x)}else F[k].push(x)})}else F[k]=v});return ch}
+function clinCargos(a,sc,F){const L=[];const add=(id,q)=>{const x=L.find(l=>l.id===id);if(x)x.q+=q;else L.push({id,q,pets:[a.pet]})};sc.base.forEach(id=>add(id,1));F.labs.forEach(id=>add(id,1));F.cargos.forEach(([id,q])=>add(id,q));return L}
+function fieldsHTML(F,flash,sc){
+  const fl=k=>flash&&flash.includes(k)?' flash':'';const ph='<span class="ph">Se llena solo durante la consulta</span>';
+  const sec=(k,t,body,keys)=>`<div class="hc-sec${(keys||[k]).some(x=>flash&&flash.includes(x))?' flash':''}"><small>${t}</small>${body||ph}</div>`;
+  const li=a=>a.length?`<ul>${a.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:'';
+  const vit=[['Peso',F.peso,'peso'],['Temperatura',F.temp,'temp'],['Frec. cardíaca',F.fc,'fc'],['Mucosas',F.mucosas,'mucosas'],['Deshidratación',F.hidra,'hidra']];
+  return sec('motivo','Motivo de consulta',F.motivo?esc(F.motivo):'')+
+   sec('anamnesis','Anamnesis',li(F.anamnesis))+
+   `<div class="hc-sec${['peso','temp','fc','mucosas','hidra','examen'].some(x=>flash&&flash.includes(x))?' flash':''}"><small>Examen físico</small><div class="vitals">${vit.map(v=>`<div class="${fl(v[2])}"><em>${v[0]}</em><b>${v[1]?esc(v[1]):'·'}</b></div>`).join('')}</div>${F.examen?`<p>${esc(F.examen)}</p>`:''}</div>`+
+   sec('dx','Diagnóstico presuntivo',F.dx?esc(F.dx):'')+
+   `<div class="hc-sec${fl('labs')}${fl('labNote')}"><small>Exámenes solicitados</small><div class="labs">${LABS.map(id=>`<span class="${F.labs.includes(id)?'on':''}">${ic(F.labs.includes(id)?'check':'plus')}${esc(CAT[id].name)}</span>`).join('')}</div>${F.labNote?`<p>${esc(F.labNote)}</p>`:''}</div>`+
+   sec('tx','Tratamiento',li(F.tx))+
+   sec('ind','Indicaciones para la familia',li(F.ind))+
+   sec('control','Próximo control',F.control?`${esc(F.control)}<span class="chip ok" style="margin-left:8px">${ic('bell')}${sc&&sc.control?'Se agenda solo con recordatorio':'El radar le avisa antes'}</span>`:'');
+}
+function cargosHTML(a,sc,F,state){
+  const L=clinCargos(a,sc,F);const tot=L.reduce((x,l)=>x+CAT[l.id].price*l.q*(1+CAT[l.id].tax),0);
+  const done=st.consults&&st.consults[a.id];
+  return `<div class="clin-cargos"><div><small>CUENTA QUE SE ARMA SOLA</small>${L.map(l=>`<div class="cg"><span>${l.q>1?l.q+' × ':''}${esc(CAT[l.id].name)}</span><b>${money(CAT[l.id].price*l.q)}</b></div>`).join('')}<div class="cg tot"><span>Total con ITBMS</span><b>${money(tot)}</b></div></div>
+  <div class="clin-acts">${state==='done'?(done&&done.sent?`<span class="sent-mark">${ic('check')}Enviada a recepción ${esc(done.sent)}</span><a class="btn primary" href="#caja">${ic('cash')}Ver en la caja</a>`:`<button class="btn pink" data-a="clin-send">${ic('send')}Enviar a recepción</button>`)+`<button class="btn wa" data-a="toast" data-m="Indicaciones y receta enviadas por WhatsApp a ${esc(first(HHMAP[a.hh]))}">${ic('chat')}Indicaciones por WhatsApp</button><button class="btn ghost" data-a="clin-rx">${ic('print')}Receta</button><button class="link" data-a="clin-reset">Repetir la demostración</button>`:state==='run'?`<button class="btn ghost" data-a="clin-skip">Adelantar al final</button>`:''}</div></div>`;
+}
+function vClinica(){
+  const list=PF.clinicToday.slice().sort((x,y)=>x.h-y.h);
+  if(!clin.sel||!list.find(x=>x.id===clin.sel))clin.sel=(list.find(x=>x.script)||list[0]).id;
+  const a=list.find(x=>x.id===clin.sel),p=PETMAP[a.pet],hh=HHMAP[a.hh],sc=consultScript(a);
+  const done=st.consults&&st.consults[a.id];const running=clin.run&&clin.run.id===a.id;
+  const F=running?clin.run.F:done?done.F:emptyF();const state=running?(clin.run.i>=clin.run.sc.lines.length?'done':'run'):done?'done':'idle';
+  const age=ageOf(p);const vx=p.vax.map(v=>dd(v.due)<0?v.name+' vencida':v.name+' al día').join(' · ')||'Sin vacunas registradas';
+  const tpls=['Consulta general','Vacunación','Cirugía','Dermatología','Control'];
+  return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Clínica veterinaria</h1><p>La consulta se escribe sola. La IA escucha la conversación, llena la historia clínica con la plantilla de cada tipo de atención y arma la cuenta. La veterinaria solo revisa y la envía a recepción.</p></div></div>${roleNote()}
+  <div class="clin"><aside class="card clin-list"><div class="list-head"><b>Consultas de hoy</b><span class="muted" style="font-size:12px">${list.length} citas</span></div>${list.map(x=>{const q=PETMAP[x.pet];const d=st.consults&&st.consults[x.id];return `<button class="cl-item ${x.id===clin.sel?'on':''}" data-a="clin-sel" data-id="${x.id}"><span class="tl-time">${hhmm(x.h)}</span>${pav(q,'sm')}<span class="cl-main"><b>${esc(q.name)}</b><small>${esc(x.reason)}</small></span>${d?`<span class="chip ok">${ic('check')}Lista</span>`:consultScript(x)?'<span class="chip pink">IA</span>':''}</button>`}).join('')}</aside>
+  <section class="card clin-main"><div class="clin-pt">${a.script==='gastro'?`<img class="pt-photo" src="./assets/fotos/clinica-${FOTOS[p.breed]||'perro'}.jpg" alt="${esc(p.name)} en la clínica" onerror="this.replaceWith(Object.assign(document.createElement('span'),{innerHTML:''}))">`:pav(p,'xl')}<div><h2>${esc(p.name)}</h2><p>${esc(p.breed)}${age!=null?' · '+age+(age===1?' año':' años'):''}${p.weight?' · '+p.weight+' kg':''} · ${p.sex}</p><p class="muted">${esc(hh.name)} · ${esc(hh.phone)} · ${esc(a.who)} · ${hhmm(a.h)}</p><div class="opp-tags"><span class="chip outline">${ic('syringe')}${esc(vx)}</span>${a.fromChat?`<span class="chip pink">${ic('chat')}Agendada por WhatsApp</span>`:''}</div></div><button class="btn ghost sm" data-a="fam" data-id="${hh.id}">${ic('user')}Ficha</button></div>
+  ${sc?`<div class="clin-tpl"><span class="muted">Plantilla</span>${tpls.map(t=>`<span class="chip ${t===sc.tpl?'dark':'outline'}">${t}</span>`).join('')}<small class="muted">La IA la escogió por el motivo de la cita</small></div>
+  <div class="clin-bar" id="clin-bar">${state==='idle'?`<button class="btn pink big" data-a="clin-start">${ic('mic')}Iniciar consulta con IA</button><span class="muted">La doctora habla normal con la familia. No tiene que escribir nada.</span>`:state==='run'?`<span class="rec"><i></i>Escuchando la consulta</span><span class="wave"><i></i><i></i><i></i><i></i><i></i></span>`:`<span class="sent-mark">${ic('check')}Consulta terminada. La historia clínica quedó lista.</span>`}</div>
+  <div class="clin-grid"><div class="clin-tx"><h3>Transcripción en vivo</h3><div class="tx-body" id="clin-tx">${(running?sc.lines.slice(0,clin.run.i):done?sc.lines:[]).map(l=>txLine(l,a)).join('')||'<div class="empty">Aquí aparece lo que se habla en la consulta.</div>'}</div></div>
+  <div class="clin-hc"><h3>Historia clínica</h3><div id="clin-fields">${fieldsHTML(F,null,sc)}</div></div></div>
+  <div id="clin-cargos">${state==='idle'?'':cargosHTML(a,sc,F,state)}</div>`:`<div class="meta-note" style="margin-top:14px">${ic('info')}<div>La consulta de demostración con IA es la de las 10:30 a.m. y las de vacunación. En el sistema real todas funcionan igual, con la plantilla de cada tipo de atención.<div style="margin-top:10px"><button class="btn primary sm" data-a="clin-demo">Ir a la consulta de demostración</button></div></div></div>`}
+  </section></div>`;
+}
+function txLine(l,a){const vet=l[0]==='vet';return `<div class="txl ${vet?'vet':'fam'}"><b>${vet?esc(a.who):esc(first(HHMAP[a.hh]))}</b><span>${esc(l[1])}</span></div>`}
+function clinStart(){
+  const a=PF.clinicToday.find(x=>x.id===clin.sel);const sc=consultScript(a);if(!sc)return;
+  clin.run={id:a.id,sc,i:0,F:emptyF()};rerender();setTimeout(clinTick,500);
+}
+function clinTick(){
+  const r=clin.run;if(!r||route!=='clinica')return;
+  const a=PF.clinicToday.find(x=>x.id===r.id);
+  if(r.i>=r.sc.lines.length){clinFinish();return}
+  const l=r.sc.lines[r.i];const ch=applyOps(r.F,l[2]);r.i++;
+  const tx=document.getElementById('clin-tx');if(tx){if(r.i===1)tx.innerHTML='';tx.insertAdjacentHTML('beforeend',txLine(l,a));tx.scrollTop=tx.scrollHeight}
+  const fe=document.getElementById('clin-fields');if(fe)fe.innerHTML=fieldsHTML(r.F,ch,r.sc);
+  const cg=document.getElementById('clin-cargos');if(cg)cg.innerHTML=cargosHTML(a,r.sc,r.F,'run');
+  r.timer=setTimeout(clinTick,900+l[1].length*14);
+}
+function clinSkip(){const r=clin.run;if(!r)return;clearTimeout(r.timer);while(r.i<r.sc.lines.length){applyOps(r.F,r.sc.lines[r.i][2]);r.i++}clinFinish()}
+function clinFinish(){
+  const r=clin.run;if(!r)return;clearTimeout(r.timer);
+  st.consults=st.consults||{};st.consults[r.id]={F:r.F,t:nowLabel(),sent:null};save();clin.run=null;
+  const a=PF.clinicToday.find(x=>x.id===r.id);a.status='Terminado';rerender();
+  toast('Historia clínica de '+PETMAP[a.pet].name+' lista, con la cuenta armada');
+}
+function clinSend(){
+  const a=PF.clinicToday.find(x=>x.id===clin.sel);const c=st.consults&&st.consults[a.id];if(!c)return;const sc=consultScript(a);
+  const lines=clinCargos(a,sc,c.F);st.recep=st.recep||[];st.recep=st.recep.filter(t=>t.id!=='RQ-C'+a.id);
+  st.recep.push({id:'RQ-C'+a.id,hh:a.hh,pets:[a.pet],area:'Clínica',who:a.who,time:nowLabel(),lines,note:'Consulta de las '+hhmm(a.h),appt:a.id});
+  c.sent=nowLabel();
+  if(sc.control)st.appts.push({id:'AP-C'+a.id,hh:a.hh,pets:[a.pet],area:'Clínica',who:a.who,t:sc.next,h:10,label:cap(DIAS[new Date(sc.next).getDay()])+' '+new Date(sc.next).getDate()+', 10:00 a.m.',svc:'Control y resultados de laboratorio',from:'Clínica'});
+  save();bump();rerender();toast('La cuenta de '+PETMAP[a.pet].name+' llegó a recepción con '+lines.length+' cargos');
+}
+function clinReset(){
+  const id=clin.sel;if(st.consults)delete st.consults[id];st.recep=(st.recep||[]).filter(t=>t.id!=='RQ-C'+id);st.recepDone=(st.recepDone||[]).filter(x=>x!=='RQ-C'+id);st.appts=st.appts.filter(x=>x.id!=='AP-C'+id);
+  const a=PF.clinicToday.find(x=>x.id===id);if(a&&a.script)a.status='En proceso';save();bump();rerender();
+}
+function showReceta(){
+  const a=PF.clinicToday.find(x=>x.id===clin.sel);const c=st.consults&&st.consults[a.id];if(!c)return;const p=PETMAP[a.pet],hh=HHMAP[a.hh],F=c.F;
+  const li=x=>x.length?`<ul>${x.map(y=>`<li>${esc(y)}</li>`).join('')}</ul>`:'<p class="muted">·</p>';
+  openOverlay(`<div class="modal" style="max-width:760px"><button class="x-btn" data-a="close">${ic('close')}</button><div class="doc-bar"><div><strong>Receta e indicaciones · ${esc(p.name)}</strong><small>Sale de la historia clínica, nadie la tuvo que escribir</small></div><div style="display:flex;gap:8px"><button class="btn ghost sm" data-a="print">${ic('print')}Imprimir</button><button class="btn wa sm" data-a="toast" data-m="Receta enviada por WhatsApp a ${esc(first(hh))}">${ic('send')}Enviar por WhatsApp</button></div></div>
+  <div class="doc">${docTop('Receta e indicaciones',fdl(TODAY)+' de '+new Date(TODAY).getFullYear())}<div class="doc-meta"><div><small>Paciente</small><b>${esc(p.name)}</b><br><span class="muted" style="font-size:12px">${esc(p.breed)} · ${p.weight} kg</span></div><div><small>Familia</small><b>${esc(hh.name)}</b></div><div><small>Atendió</small><b>${esc(a.who)}</b></div></div>
+  <div class="rx"><h3>Diagnóstico</h3><p>${esc(F.dx)}</p><h3>Tratamiento</h3>${li(F.tx)}<h3>Indicaciones</h3>${li(F.ind)}<h3>Exámenes</h3>${li(F.labs.map(id=>CAT[id].name))}<h3>Próximo control</h3><p>${esc(F.control)}</p></div>
+  <p class="doc-note">Documento de ejemplo generado por el prototipo.</p></div></div>`,'center');
+}
+
+/* ---------- Peluquería, el servicio como lo hace el equipo ---------- */
+const FOTOS={'Shih Tzu':'shihtzu','Schnauzer miniatura':'schnauzer','Poodle toy':'poodle','Maltés':'maltes','Yorkshire terrier':'yorkie','Pomerania':'pomerania'};
+const foto=(p,k)=>FOTOS[p.breed]&&!p.real?`./assets/fotos/${FOTOS[p.breed]}-${k}.jpg`:null;
+const UP={};
+let gm=null;
+const prefOf=p=>/Shih|Maltés|Pomerania|Yorkshire|Bichón|Poodle/.test(p.breed)?'Corte cachorro, orejas cortas y pañoleta':/Schnauzer/.test(p.breed)?'Corte de raza, barba y cejas marcadas':/Golden|Husky|Border/.test(p.breed)?'Deslanado y cepillado a fondo':'Shampoo hipoalergénico, piel sensible';
+const LLEGADA=['Sin novedad','Nudos','Pulgas','Piel irritada','Uñas largas','Oídos sucios'];
+function openGroom(id){
+  const a=PF.groomToday.find(x=>x.id===id);if(!a)return;
+  const inRq=rqAll().some(t=>t.appt===a.id||(t.area==='Peluquería'&&t.pets.includes(a.pet)))||(st.recepDone||[]).includes('RQ-A'+a.id);
+  const p=PETMAP[a.pet];const corte=/Corte/.test(CAT[a.svc].name);
+  const items=['Baño y secado',corte?'Corte de raza':'Cepillado','Corte de uñas','Limpieza de oídos','Perfume y pañoleta'];
+  const done=a.status==='Terminado'||inRq;
+  gm={id,step:done?4:1,items,checks:items.map(()=>done),llegada:done?['Nudos']:[],antes:done?'ai':null,despues:done?'ai':null,inRq};
+  openOverlay(`<div class="modal" style="max-width:1080px" id="gm-modal">${gmHTML()}</div>`,'center');
+}
+function gmSrc(k){const a=PF.groomToday.find(x=>x.id===gm.id);const p=PETMAP[a.pet];if(gm[k]==='up')return UP[gm.id+k];if(gm[k]==='ai')return foto(p,k);return null}
+function gmPhoto(k,label){
+  const a=PF.groomToday.find(x=>x.id===gm.id);const p=PETMAP[a.pet];const src=gmSrc(k);const bg=(COATS[p.coat]||COATS.neutro)[0];
+  if(gm[k])return `<div class="shot-box">${src?`<img src="${src}" alt="${label} de ${esc(p.name)}">`:`<div class="shot-fallback" style="background:${bg}"><span>${esc(p.name)}</span></div>`}<span class="shot-tag">${ic('check')}${label} · ${nowLabel()}</span></div>`;
+  return `<div class="shot-box empty"><div class="shot-cam">${ic('cam')}<b>${label}</b><small>Con la cámara de la tablet o del celular</small><div class="shot-btns"><button class="btn pink sm" data-a="gm-snap" data-k="${k}">${ic('cam')}Tomar foto</button><label class="btn ghost sm">${ic('download')}Subir del celular<input type="file" accept="image/*" capture="environment" data-up="${k}" hidden></label></div></div></div>`;
+}
+function gmHTML(){
+  const a=PF.groomToday.find(x=>x.id===gm.id);const p=PETMAP[a.pet],hh=HHMAP[a.hh];const fem=p.sex==='Hembra';
+  const lines=gmLines();const tot=lines.reduce((x,l)=>x+CAT[l.id].price*l.q*(1+CAT[l.id].tax),0);
+  const S=gm.step;
+  const steps=[
+   ['cam','Recibe a '+p.name+' y toma la foto de antes','Queda registrado cómo llegó, con foto y hora. Si trae pulgas o piel irritada, la clínica recibe un aviso para revisarl'+(fem?'a':'o')+'.'],
+   ['scissors','Marca cada paso del servicio','Cada paso queda con su hora. Lo que pidió la familia, como el corte de uñas, ya aparece en la lista.'],
+   ['cam','Toma la foto de después','La foto queda en el reporte de peluquería de '+p.name+', junto a la de antes. El próximo baño se hace igual.'],
+   ['send','Entrega y cobro','La familia recibe la foto por WhatsApp y la cuenta llega a recepción. El radar calcula cuándo le toca el próximo baño.']];
+  let body='';
+  if(S===1)body=`<h3>1. Recibir a ${esc(p.name)}</h3>${gmPhoto('antes','Foto de antes')}<div class="section-title">Cómo llegó</div><div class="gm-checks">${LLEGADA.map(t=>`<button class="${gm.llegada.includes(t)?'on':''}" data-a="gm-lleg" data-t="${t}">${ic(gm.llegada.includes(t)?'check':'plus')}${t}</button>`).join('')}</div><div class="gm-next"><button class="btn primary big" data-a="gm-step" data-s="2" ${gm.antes?'':'disabled'}>Empezar el servicio${ic('arrow')}</button></div>`;
+  if(S===2)body=`<h3>2. Servicio de ${esc(p.name)}</h3><div class="gm-pref">${ic('heart')}<span><b>Así le gusta a la familia.</b> ${esc(prefOf(p))}</span></div><div class="gm-checks big">${gm.items.map((t,i)=>`<button class="${gm.checks[i]?'on':''}" data-a="gm-check" data-i="${i}">${ic(gm.checks[i]?'check':'plus')}${t}</button>`).join('')}</div><div class="gm-next"><button class="btn ghost" data-a="gm-step" data-s="1">Atrás</button><button class="btn primary big" data-a="gm-step" data-s="3">Listo, tomar foto de después${ic('arrow')}</button></div>`;
+  if(S===3)body=`<h3>3. Así quedó ${esc(p.name)}</h3><div class="gm-pair">${gmPhoto('antes','Antes')}${gmPhoto('despues','Foto de después')}</div><div class="gm-next"><button class="btn ghost" data-a="gm-step" data-s="2">Atrás</button><button class="btn pink big" data-a="gm-finish" ${gm.despues?'':'disabled'}>${ic('send')}Terminar y avisar a la familia</button></div>`;
+  if(S===4){const src=gmSrc('despues');body=`<h3>4. ${esc(p.name)} está ${fem?'lista':'listo'}</h3><div class="gm-deliver"><div class="auto-msg"><div class="bub in" style="animation:none;max-width:100%">${src?`<img class="bub-img" src="${src}" alt="">`:''}Hola ${esc(first(hh))} 🐾 ${esc(p.name)} ya está ${fem?'lista':'listo'} para recoger. Así ${fem?'quedó':'quedó'} hoy con ${esc(a.who)} 💗<time>WhatsApp a la familia</time></div></div><div class="gm-bill"><small>CUENTA EN RECEPCIÓN</small>${lines.map(l=>`<div class="cg"><span>${esc(CAT[l.id].name)}</span><b>${money(CAT[l.id].price*l.q)}</b></div>`).join('')}<div class="cg tot"><span>Total con ITBMS</span><b>${money(tot)}</b></div><a class="btn primary sm" href="#caja" style="margin-top:10px">${ic('cash')}Ver en recepción</a></div></div>`}
+  return `<button class="x-btn" data-a="close" aria-label="Cerrar">${ic('close')}</button><div class="sim gm-sim"><div class="gm-left"><div class="tablet"><div class="tab-bar"><img src="./assets/pf-mark.png" alt=""><b>Peluquería · ${esc(a.who)}</b><span>${hhmm(a.h)}</span></div><div class="tab-pet">${pav(p,'md')}<div><b>${esc(p.name)}</b><small>${esc(p.breed)} · ${esc(hh.name)} · ${esc(CAT[a.svc].name)}</small></div></div><div class="tab-steps">${[1,2,3,4].map(i=>`<i class="${i<S?'done':i===S?'now':''}"></i>`).join('')}</div><div class="tab-body">${body}</div></div></div>
+  <div class="sim-right"><div><span class="eyebrow">Así lo hace el equipo de peluquería</span><h2>${esc(p.name)} · ${esc(CAT[a.svc].name)}</h2></div><p>Es la pantalla de la tablet o del celular de ${esc(a.who)}. A la derecha, lo que hace el sistema en cada paso.</p><div class="steps">${steps.map((x,i)=>`<div class="step ${i<S?'on':''} ${i===S-1?'now':''}"><span class="dot">${ic(x[0])}</span><div><strong>${esc(x[1])}</strong><p>${esc(x[2])}</p></div></div>`).join('')}</div>${gm.inRq&&S===4?'':''}</div></div>`;
+}
+function gmLines(){const a=PF.groomToday.find(x=>x.id===gm.id);const p=PETMAP[a.pet];const L=[{id:a.svc,q:1,pets:[p.id]}];if(gm.checks[2])L.push({id:'v22',q:1,pets:[p.id]});if(p.longHair&&a.svc!=='v2')L.push({id:'v3',q:1,pets:[p.id]});return L}
+function gmRedraw(){const m=document.getElementById('gm-modal');if(m&&gm)m.innerHTML=gmHTML()}
+function gmFinish(){
+  const a=PF.groomToday.find(x=>x.id===gm.id);const p=PETMAP[a.pet];
+  if(!gm.inRq){st.recep=st.recep||[];st.recep.push({id:'RQ-A'+a.id,hh:a.hh,pets:[p.id],area:'Peluquería',who:a.who,time:nowLabel(),lines:gmLines(),note:'Listo para recoger',appt:a.id})}
+  st.groomReports=st.groomReports||{};(st.groomReports[p.id]=st.groomReports[p.id]||[]).unshift({t:nowLabel(),who:a.who,svc:CAT[a.svc].name,llegada:gm.llegada.slice(),checks:gm.items.filter((x,i)=>gm.checks[i]),antes:gm.antes==='ai'?'ai':null,despues:gm.despues==='ai'?'ai':null,appt:a.id,up:gm.antes==='up'||gm.despues==='up'});
+  a.status='Terminado';p.lastGroom=TODAY;gm.inRq=true;gm.step=4;save();bump();gmRedraw();
+  toast(first(HHMAP[a.hh])+' recibió la foto de '+p.name+' por WhatsApp y la cuenta pasó a recepción');
+}
+Object.entries(st.groomReports||{}).forEach(([pid,r])=>{const p=PETMAP[pid];if(p&&r.length){p.lastGroom=TODAY;const a=PF.groomToday.find(x=>x.id===r[0].appt);if(a)a.status='Terminado'}});
+document.addEventListener('change',e=>{const i=e.target.closest&&e.target.closest('input[data-up]');if(!i||!gm||!i.files||!i.files[0])return;const k=i.dataset.up;UP[gm.id+k]=URL.createObjectURL(i.files[0]);gm[k]='up';gmRedraw()});
+function groomReport(p){
+  const saved=(st.groomReports&&st.groomReports[p.id])||[];const rows=[];
+  saved.forEach(r=>rows.push({date:'Hoy '+r.t,who:r.who,svc:r.svc,a:r.antes==='ai'?foto(p,'antes'):null,d:r.despues==='ai'?foto(p,'despues'):null,notes:[...r.llegada.filter(x=>x!=='Sin novedad').map(x=>'Llegó con '+x.toLowerCase()),...r.checks].join(' · ')}));
+  if(p.lastGroom&&foto(p,'antes'))rows.push({date:fdl(p.lastGroom),who:p.groomer||'Keyla',svc:CAT[p.groomSvc]?CAT[p.groomSvc].name:'Baño',a:foto(p,'antes'),d:foto(p,'despues'),notes:'Baño y secado · '+prefOf(p)});
+  if(!rows.length)return '';
+  return `<div class="groom-rep"><small>REPORTE DE PELUQUERÍA</small>${rows.slice(0,2).map(r=>`<div class="gr-row"><div class="gr-imgs">${r.a?`<img src="${r.a}" alt="Antes">`:''}${r.d?`<img src="${r.d}" alt="Después">`:''}</div><div><b>${esc(r.date)} · ${esc(r.who)}</b><span>${esc(r.svc)}</span><em>${esc(r.notes)}</em></div></div>`).join('')}</div>`;
+}
+/* ---------- Recomendados ---------- */
+(st.newFams||[]).forEach(f=>{if(!HHMAP[f.hh.id]){PF.households.push(f.hh);HHMAP[f.hh.id]=f.hh;f.pets.forEach(p=>{PF.pets.push(p);PETMAP[p.id]=p})}});
+const refList=()=>[...(st.newRefs||[]),...PF.referrals];
+Object.entries(st.refUsed||{}).forEach(([id,u])=>{const r=refList().find(x=>x.id===id);if(r&&r.status!=='Usó su beneficio'){r.status='Usó su beneficio';r.disc=u.disc;r.credit=u.credit;const f=HHMAP[r.from];if(f)f.refCredit=r2((f.refCredit||0)+u.credit)}});
+Object.keys(st.creditUsed||{}).forEach(h=>{if(HHMAP[h])HHMAP[h].refCredit=0});
+function vRecom(){
+  const L=refList();const used=L.filter(r=>r.status==='Usó su beneficio');
+  const ventas=L.reduce((a,r)=>a+(byHH[r.to]||[]).reduce((x,s)=>x+s.total,0),0);
+  const cred=used.reduce((a,r)=>a+r.credit,0),canj=used.filter(r=>r.redeemed).reduce((a,r)=>a+r.credit,0);
+  const rank={};L.forEach(r=>{rank[r.from]=(rank[r.from]||0)+1});const top=Object.entries(rank).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const ex=L.find(r=>r.status==='Usó su beneficio')||L[0];const exF=HHMAP[ex.from],exT=HHMAP[ex.to];
+  return `<div class="page-head"><div><span class="eyebrow">Crecimiento</span><h1>Recomendados</h1><p>El Mes del Recomendado de Pets Fashion sin tarjetas de papel. Cada familia tiene su código y su QR. Cuando llega alguien nuevo con ese código, el sistema aplica el descuento, le carga el crédito a quien recomendó y les avisa a los dos por WhatsApp.</p></div><div class="head-actions"><button class="btn pink" data-a="ref-new">${ic('plus')}Registrar cliente recomendado</button></div></div>${roleNote()}
+  <section class="kpis k5">${kpi('users','Clientes nuevos',String(L.length),'llegaron recomendados')}${kpi('cash','Lo que han comprado',money(ventas,1),'desde que llegaron')}${kpi('gift','Crédito entregado',money(cred),'a quienes recomendaron')}${kpi('check','Crédito canjeado',money(canj),'ya usado en servicios')}${kpi('heart','Mejor embajador',top[0]?esc(first(HHMAP[top[0][0]])):'·',top[0]?top[0][1]+' recomendados':'')}</section>
+  <section class="cols"><div class="card panel"><div class="panel-head"><div><h2>La regla de Pets Fashion</h2><p>La del Mes del Recomendado. Se cambia en un minuto si deciden otra.</p></div></div>
+   <div class="rules"><div><small>Cliente nuevo</small><b>50% en su primer servicio</b></div><div><small>Quien recomienda</small><b>Crédito del 25% del servicio</b></div><div><small>Aplica</small><b>Solo a clientes nuevos, por nombre o teléfono</b></div><div><small>Se usa en</small><b>Baños y servicios de Pets Fashion</b></div></div>
+   <div class="insight" style="margin-top:14px"><span class="ic">${ic('scissors')}</span><div><strong>Ejemplo con un baño de 30 dólares</strong><p style="margin-bottom:0">El cliente nuevo paga 15 y 7.50 quedan en el código de quien lo recomendó, listos para su próximo servicio.</p></div></div></div>
+   <div class="card panel"><div class="panel-head"><div><h2>Lo que reciben por WhatsApp</h2><p>Sale solo al registrar y al cobrar el primer servicio.</p></div></div><div class="auto-msg" style="display:grid;gap:8px"><div class="bub in" style="animation:none">Hola ${esc(first(exT))} 🐾 Te damos la bienvenida a Pets Fashion. Por venir de parte de ${esc(first(exF))} tienes 50% en tu primer servicio. Agenda tu cita por aquí mismo.<time>Al registrarse</time></div><div class="bub in" style="animation:none">Hola ${esc(first(exF))} 🐾 Gracias por recomendarnos. ${esc(first(exT))} ya usó su primer servicio y te cargamos ${money(ex.credit||7.5)} de crédito en tu código ${esc(exF.refCode)}.<time>Al cobrar el primer servicio</time></div></div></div></section>
+  <section style="margin-top:18px;display:grid;gap:18px"><div class="card"><div class="list-head"><h2 style="font-size:17px">Clientes que llegaron recomendados</h2><span class="muted" style="font-size:12.5px">El más reciente primero</span></div><div class="table-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Recomendó</th><th>Cliente nuevo</th><th>Primer servicio</th><th class="r">Pagó</th><th class="r">Crédito</th><th>Estado</th></tr></thead><tbody>${L.slice(0,25).map(r=>{const f=HHMAP[r.from],t=HHMAP[r.to];return `<tr class="click" data-a="fam" data-id="${t.id}"><td>${fd(r.t)}</td><td><b>${esc(f.name)}</b><br><small class="muted">${esc(r.code)}</small></td><td><div class="who">${t.pets.length?pstack(t.pets):''}<div><strong>${esc(t.name)}</strong><small>${esc(names(t.pets))}</small></div></div></td><td>${esc(CAT[r.svc].name)}</td><td class="r">${r.status==='Usó su beneficio'?money(r.price-r.disc):'·'}</td><td class="r">${r.credit?money(r.credit):'·'}</td><td><span class="chip ${r.status==='Usó su beneficio'?(r.redeemed?'ok':'pink'):'warn'}">${r.status==='Usó su beneficio'?(r.redeemed?'Crédito usado':'Crédito disponible'):'Falta su primer servicio'}</span></td></tr>`}).join('')}</tbody></table></div></div>
+  <div class="card panel"><div class="panel-head"><div><h2>Los que más recomiendan</h2><p>Se les puede dar un premio aparte.</p></div></div><div class="top-ref">${top.map(([h,n],i)=>{const x=HHMAP[h];return `<div class="tl-row" data-a="fam" data-id="${h}" style="cursor:pointer;grid-template-columns:28px 40px minmax(0,1fr) auto"><b class="num" style="font-size:18px">${i+1}</b>${pstack(x.pets.slice(0,1),'md')}<div class="tl-main"><strong>${esc(x.name)}</strong><small>${esc(x.refCode)} · crédito ${money(x.refCredit||0)}</small></div><span class="chip pink">${n} ${n===1?'cliente':'clientes'}</span></div>`}).join('')}</div></div></section>`;
+}
+function refNew(){
+  const ej=PF.referrals[0]?HHMAP[PF.referrals[0].from].refCode:'';
+  openOverlay(`<div class="drawer"><button class="x-btn" data-a="close">${ic('close')}</button><span class="eyebrow">Recomendados</span><h2 style="font-size:26px;margin-bottom:6px">Registrar cliente recomendado</h2><p class="muted" style="margin:0 0 20px">Se busca a quien recomendó por su código, su nombre o su teléfono. Pruebe con ${esc(ej)}.</p>
+  <div class="form-grid"><div class="field" style="grid-column:1/-1"><label>Código, nombre o teléfono de quien recomienda</label><input class="input" id="rf-code" autocomplete="off"></div><div id="rf-found" style="grid-column:1/-1"></div>
+  <div class="field"><label>Nombre del cliente nuevo</label><input class="input" id="rf-name" autocomplete="off"></div><div class="field"><label>Teléfono</label><input class="input" id="rf-phone" autocomplete="off" inputmode="tel"></div>
+  <div class="field"><label>Nombre de la mascota</label><input class="input" id="rf-pet" autocomplete="off"></div><div class="field"><label>Especie</label><select class="select" id="rf-sp"><option>Perro</option><option>Gato</option></select></div></div>
+  <div id="rf-err" style="color:var(--bad);font-size:13px;min-height:20px;margin-top:12px"></div><div class="drawer-actions"><button class="btn pink" data-a="ref-save">${ic('check')}Registrar y avisar por WhatsApp</button><button class="btn ghost" data-a="close">Cancelar</button></div></div>`);
+  const i=document.getElementById('rf-code');i.oninput=()=>{const h=refFind(i.value);document.getElementById('rf-found').innerHTML=h?`<div class="result">${ic('check')}<div><b>Lo encontré</b><p>${esc(h.name)} · ${esc(names(h.pets))} · código ${esc(h.refCode)}</p></div></div>`:''};setTimeout(()=>i.focus(),60);
+}
+function refFind(q){q=(q||'').trim().toLowerCase();if(q.length<3)return null;const dig=q.replace(/\D/g,'');return PF.households.find(h=>h.refCode&&(h.refCode.toLowerCase()===q||h.name.toLowerCase().includes(q)||(dig.length>=4&&h.phone.replace(/\D/g,'').endsWith(dig))))}
+function refSave(){
+  const v=id=>document.getElementById(id).value.trim();const f=refFind(v('rf-code'));const err=document.getElementById('rf-err');
+  if(!f){err.textContent='No encontré a quien recomienda. Revise el código o el teléfono.';return}
+  if(!v('rf-name')||!v('rf-pet')){err.textContent='Falta el nombre del cliente nuevo o de su mascota.';return}
+  const id='HN'+Date.now(),pid='PN'+Date.now(),sp=v('rf-sp')==='Gato'?'gato':'perro';
+  const pet={id:pid,hh:id,name:v('rf-pet'),sp,breed:sp==='gato'?'Gato doméstico':'Por registrar',coat:'neutro3',weight:null,sex:'Por registrar',birth:null,groomEvery:0,groomSvc:sp==='gato'?null:'v1',longHair:false,vax:[],notes:''};
+  const hh={id,name:v('rf-name'),phone:v('rf-phone')||'Por registrar',zone:'Por registrar',since:TODAY,loyal:'fiel',lostAt:null,pets:[pid],bestHour:'',balance:0,notes:'Llegó recomendado por '+f.name+'.'};
+  hh.refCode=v('rf-name').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().split(' ')[0].replace(/[^A-Z]/g,'').slice(0,9)+'-'+String(100+Date.now()%900);
+  st.newFams=st.newFams||[];st.newFams.push({hh,pets:[pet]});PF.households.push(hh);HHMAP[id]=hh;PF.pets.push(pet);PETMAP[pid]=pet;
+  const svc=CAT[pet.groomSvc||'v1'];st.newRefs=st.newRefs||[];st.newRefs.unshift({id:'RN'+Date.now(),t:TODAY,from:f.id,to:id,code:f.refCode,svc:svc.id,price:svc.price,disc:0,credit:0,status:'Registrado',redeemed:false});
+  save();bump();closeOverlay();rerender();toast('Registrado. '+first(hh)+' tiene 50% en su primer servicio y '+first(f)+' recibe crédito cuando lo use. Se les avisó a los dos por WhatsApp');
+}
+function refPending(hid){return refList().find(r=>r.to===hid&&r.status==='Registrado')}
+
 /* ---------- Pedidos ---------- */
 const OST=['Nuevo','Pagado','En ruta','Entregado'];
 function vPedidos(){
@@ -729,10 +1007,12 @@ function invData(){
     return {p,d,v,cover,state,cls,sug,margin:(p.price-p.cost)/p.price};
   });
 }
+const PFOTO={'Alimento perro':'alimento-perro','Alimento gato':'alimento-gato','Antiparasitario':'antiparasitario','Farmacia':'antiparasitario','Higiene':'higiene','Accesorios':'accesorios','Snacks':'snacks'};
+const pfoto=p=>PFOTO[p.cat]?`./assets/fotos/producto-${PFOTO[p.cat]}.jpg`:null;
 function invRows(){
   const q=invQ.trim().toLowerCase();const order={'Pedir ya':0,'Justo':1,'Sin movimiento':2,'Bien':3};
   const rows=invData().filter(r=>(invCat==='Todo'||(invCat==='Alimento'?/Alimento/.test(r.p.cat):invCat==='Accesorios'?/Accesorios|Higiene|Snacks/.test(r.p.cat):r.p.cat===invCat))&&(!q||r.p.name.toLowerCase().includes(q)||r.p.brand.toLowerCase().includes(q))).sort((a,b)=>order[a.state]-order[b.state]||b.d-a.d);
-  return rows.map(r=>`<tr><td><div class="who"><div><strong>${esc(r.p.name)}</strong><small>${esc(r.p.brand)} · ${esc(r.p.cat)}</small></div></div></td><td class="r num">${r.p.stock}</td><td class="r">${r.v}</td><td class="r">${r.d?`<b style="color:var(--pf-ink)">${r.d}</b>`:'<span class="muted">0</span>'}</td><td><div class="stock-cell"><div class="cover"><i style="width:${r.cover>=999?100:Math.min(100,r.cover/60*100)}%;background:${r.cover>=999?'#d6cfd4':r.cover<14?'var(--pf)':r.cover<30?'var(--warn)':'var(--ok)'}"></i></div><small class="muted">${r.cover>=999?'Sin ventas':r.cover+' días'}</small></div></td><td class="r">${Math.round(r.margin*100)}%</td><td><span class="chip ${r.cls}">${r.state}</span></td><td class="r">${r.sug?`<b>${r.sug}</b>`:'<span class="muted">·</span>'}</td></tr>`).join('');
+  return rows.map(r=>`<tr><td><div class="who">${pfoto(r.p)?`<img class="thumb" src="${pfoto(r.p)}" alt="" loading="lazy">`:''}<div><strong>${esc(r.p.name)}</strong><small>${esc(r.p.brand)} · ${esc(r.p.cat)}</small></div></div></td><td class="r num">${r.p.stock}</td><td class="r">${r.v}</td><td class="r">${r.d?`<b style="color:var(--pf-ink)">${r.d}</b>`:'<span class="muted">0</span>'}</td><td><div class="stock-cell"><div class="cover"><i style="width:${r.cover>=999?100:Math.min(100,r.cover/60*100)}%;background:${r.cover>=999?'#d6cfd4':r.cover<14?'var(--pf)':r.cover<30?'var(--warn)':'var(--ok)'}"></i></div><small class="muted">${r.cover>=999?'Sin ventas':r.cover+' días'}</small></div></td>${canCost()?`<td class="r">${Math.round(r.margin*100)}%</td>`:''}<td><span class="chip ${r.cls}">${r.state}</span></td><td class="r">${r.sug?`<b>${r.sug}</b>`:'<span class="muted">·</span>'}</td></tr>`).join('');
 }
 function vInventario(){
   const data=invData();const pedir=data.filter(r=>r.state==='Pedir ya');const dem=demand14();
@@ -740,11 +1020,11 @@ function vInventario(){
   const po=data.filter(r=>r.sug).reduce((a,r)=>a+r.sug*r.p.cost,0);
   const tot=Object.values(dem).reduce((a,b)=>a+b,0);
   const w=insights().find(x=>x.icon==='box');
-  return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Inventario</h1><p>La existencia de cada producto cruzada con lo que el radar sabe que las familias van a necesitar. Se pide al proveedor con datos, no a ojo.</p></div><div class="head-actions"><button class="btn ghost" data-a="new-product">${ic('plus')}Agregar producto</button><button class="btn primary" data-a="po">${ic('receipt')}Generar pedido al proveedor</button></div></div>
-  ${w?`<div class="card callout"><span class="ic">${ic('radar')}</span><div><strong>${w.t}</strong><p>${w.p}</p></div><button class="btn pink sm" data-a="po">Pedir ahora</button></div>`:''}
-  <section class="kpis k4">${kpi('alert','Pedir ya',pedir.length+' productos','bajo el mínimo o por debajo de la demanda')}${kpi('radar','Demanda anticipada',tot+' unidades','alimento y antipulgas en 14 días')}${kpi('box','Dinero detenido',money(stale,1),'en productos sin ventas en 90 días')}${kpi('receipt','Pedido sugerido',money(po,1),'a precio de costo')}</section>
+  return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Inventario</h1><p>La existencia de cada producto cruzada con lo que el radar sabe que las familias van a necesitar. Se pide al proveedor con datos, no a ojo.</p></div><div class="head-actions"><button class="btn ghost" data-a="new-product">${ic('plus')}Agregar producto</button>${canCost()?`<button class="btn primary" data-a="po">${ic('receipt')}Generar pedido al proveedor</button>`:''}</div></div>${roleNote()}
+  ${w?`<div class="card callout"><span class="ic">${ic('radar')}</span><div><strong>${w.t}</strong><p>${w.p}</p></div>${canCost()?'<button class="btn pink sm" data-a="po">Pedir ahora</button>':''}</div>`:''}
+  <section class="kpis k4">${kpi('alert','Pedir ya',pedir.length+' productos','bajo el mínimo o por debajo de la demanda')}${kpi('radar','Demanda anticipada',tot+' unidades','alimento y antipulgas en 14 días')}${canCost()?kpi('box','Dinero detenido',money(stale,1),'en productos sin ventas en 90 días')+kpi('receipt','Pedido sugerido',money(po,1),'a precio de costo'):kpi('box','Productos activos',String(data.length),'en el catálogo')+kpi('check','Bien surtidos',String(data.filter(r=>r.state==='Bien').length),'no hace falta pedir')}</section>
   <section class="card"><div class="list-head"><div class="tabs">${['Todo','Alimento','Antiparasitario','Farmacia','Accesorios'].map(k=>`<button class="tab ${invCat===k?'on':''}" data-a="inv-cat" data-c="${k}">${k}</button>`).join('')}</div><div class="search-field" style="min-width:240px">${ic('search')}<input id="inv-search" class="input" placeholder="Buscar producto o marca" value="${esc(invQ)}"></div></div>
-  <div class="table-wrap"><table class="t"><thead><tr><th>Producto</th><th class="r">Existencia</th><th class="r">Venta 30 d</th><th class="r">Radar 14 d</th><th>Cobertura</th><th class="r">Margen</th><th>Estado</th><th class="r">Pedir</th></tr></thead><tbody id="inv-body">${invRows()}</tbody></table></div></section>`;
+  <div class="table-wrap"><table class="t"><thead><tr><th>Producto</th><th class="r">Existencia</th><th class="r">Venta 30 d</th><th class="r">Radar 14 d</th><th>Cobertura</th>${canCost()?'<th class="r">Margen</th>':''}<th>Estado</th><th class="r">Pedir</th></tr></thead><tbody id="inv-body">${invRows()}</tbody></table></div></section>`;
 }
 function showPO(){
   const rows=invData().filter(r=>r.sug);const by={};rows.forEach(r=>(by[r.p.brand]=by[r.p.brand]||[]).push(r));
@@ -816,7 +1096,7 @@ function petCard(p){
   const vax=p.vax.length?`<div class="fact">${ic('syringe')}<div><small>Vacunas</small><b>${p.vax.map(v=>v.name).join(' y ')}</b><em>${p.vax.map(v=>dd(v.due)<0?v.name+' vencida':v.name+' hasta '+fd(v.due)).join(' · ')}</em></div></div>`:`<div class="fact">${ic('syringe')}<div><small>Vacunas</small><b>Sin registro aquí</b><em>Se cargan en la primera consulta</em></div></div>`;
   const anti=p.anti&&p.anti.last?`<div class="fact">${ic('shield')}<div><small>Antipulgas</small><b>${esc(shortName(CAT[p.anti.product]))}</b><em>Próxima dosis ${rel(dd(p.anti.last+p.anti.every*DAY))}</em></div></div>`:`<div class="fact">${ic('shield')}<div><small>Antipulgas</small><b>Sin registro</b><em>Oportunidad de venta</em></div></div>`;
   const age=ageOf(p);
-  return `<div class="pet-card"><div class="pet-top">${pav(p,'lg')}<div><strong>${esc(p.name)}</strong><small>${esc(p.breed)}${age!=null?' · '+age+(age===1?' año':' años'):''}${p.weight?' · '+p.weight+' kg':''} · ${p.sex}</small></div></div><div class="pet-facts">${food}${groom}${vax}${anti}</div>${p.notes?`<small class="muted">${esc(p.notes)}</small>`:''}</div>`;
+  return `<div class="pet-card"><div class="pet-top">${pav(p,'lg')}<div><strong>${esc(p.name)}</strong><small>${esc(p.breed)}${age!=null?' · '+age+(age===1?' año':' años'):''}${p.weight?' · '+p.weight+' kg':''} · ${p.sex}</small></div></div><div class="pet-facts">${food}${groom}${vax}${anti}</div>${groomReport(p)}${p.notes?`<small class="muted">${esc(p.notes)}</small>`:''}</div>`;
 }
 function showStatement(id){
   const hh=HHMAP[id];const all=(byHH[id]||[]).slice().sort((a,b)=>a.t-b.t);
@@ -933,6 +1213,8 @@ function downloadCSV(){
 
 /* ---------- Asistente ---------- */
 const QS=[
+ 'Cómo registro a un cliente nuevo que viene recomendado?',
+ 'Cómo le cobro a una familia lo de clínica, peluquería y tienda juntos?',
  'Cuánto dinero hay en recompras esta semana?',
  'Quiénes compraban Royal Canin y no han vuelto?',
  'Qué día conviene una promoción de peluquería?',
@@ -943,6 +1225,8 @@ const QS=[
 let aiLog=[];
 function aiAnswer(q){
   const s=q.toLowerCase();
+  if(/recomendad/.test(s))return {h:'Así se registra a un cliente que viene recomendado.',list:['Entre a Recomendados y toque Registrar cliente recomendado.','Escriba el código, el nombre o el teléfono de quien lo recomendó. El sistema lo encuentra solo.','Ponga el nombre del cliente nuevo y de su mascota, y toque Registrar.','Los dos reciben un WhatsApp. Cuando el cliente nuevo pase por caja, el 50% se aplica con un toque y el crédito le llega a quien recomendó.'],base:'Respuesta del manual del sistema. El asistente también responde dudas de uso del equipo, como esta.'};
+  if(/cobr.*junt|junt.*cobr/.test(s))return {h:'Todo se cobra en una sola venta desde Caja y recepción.',list:['Arriba aparecen las cuentas que mandan la clínica, la peluquería y el hotel.','Toque Cobrar en la de la familia. Si tiene otra cuenta pendiente, toque Agregar y se suma a la misma venta.','Agregue lo que se lleve de la tienda, por ejemplo el alimento.','Escoja cómo paga y toque Cobrar. Sale una sola factura electrónica con todo.'],base:'Respuesta del manual del sistema.'};
   if(/recompra|semana|dinero/.test(s)){const a=activeOpps();const by={};a.forEach(o=>{by[o.type]=by[o.type]||{n:0,v:0};by[o.type].n++;by[o.type].v+=o.value});return {h:`Hay <b>${money(a.reduce((x,o)=>x+o.value,0),1)}</b> en ${a.length} recompras listas para pedir.`,list:Object.entries(by).map(([k,v])=>`${TYPES[k].label}, ${v.n} avisos por ${money(v.v,1)}`),base:'Suma del precio de cada producto o servicio que el radar detectó para los próximos días.'}}
   if(/royal|no han vuelto|dejaron/.test(s)){const all=radar().filter(o=>o.type==='dormido'&&/Royal/.test(o.prod.name)).sort((x,y)=>y.annual-x.annual);const d=all.slice(0,6);return {h:`${all.length?all.length+' familias':'Ninguna familia'} que compraban Royal Canin dejaron de volver. Estas son las ${d.length} de mayor gasto.`,list:d.map(o=>`${o.hh.name}, ${names(o.pets)}. Última compra el ${fdl(o.last)}, gastaba ${money(o.annual,1)} al año`),base:'Familias cuya frecuencia normal de compra ya pasó por más de 10 días sin volver.',btn:d[0]?d[0].id:null}}
   if(/día|dia|promoci|peluquer/.test(s)&&!/nunca/.test(s)){const wk=weekdayGroom().slice(1);const low=wk.reduce((a,b)=>b.n<a.n?b:a),high=wk.reduce((a,b)=>b.n>a.n?b:a);return {h:`El <b>${low.d}</b>. Tiene ${Math.round((1-low.n/high.n)*100)}% menos baños que el ${high.d}.`,list:wk.map(x=>`${cap(x.d)}, ${x.n} baños en el año`),base:'Baños y cortes cobrados en caja en los últimos 12 meses.'}}
@@ -1016,6 +1300,24 @@ document.addEventListener('click',e=>{
     case 'pos-pet':{const i=pos.pets.indexOf(id);if(i>=0)pos.pets.splice(i,1);else pos.pets.push(id);rerender();break}
     case 'pos-pay':pos.pay=el.dataset.p;rerender();break;
     case 'pos-fiscal':pos.fiscal=el.dataset.f;rerender();break;
+    case 'rq-load':rqLoad(id);if(route!=='caja')location.hash='caja';else rerender();break;
+    case 'clin-sel':if(clin.run){clearTimeout(clin.run.timer);clin.run=null}clin.sel=id;rerender();break;
+    case 'clin-demo':clin.sel=(PF.clinicToday.find(x=>x.script)||{}).id;rerender();break;
+    case 'clin-start':clinStart();break;
+    case 'clin-skip':clinSkip();break;
+    case 'clin-send':clinSend();break;
+    case 'clin-reset':clinReset();break;
+    case 'clin-rx':showReceta();break;
+    case 'groom':openGroom(id);break;
+    case 'gm-check':gm.checks[+el.dataset.i]=!gm.checks[+el.dataset.i];gmRedraw();break;
+    case 'gm-lleg':{const t=el.dataset.t;const i=gm.llegada.indexOf(t);if(i>=0)gm.llegada.splice(i,1);else{gm.llegada.push(t);if(t==='Sin novedad')gm.llegada=['Sin novedad'];else gm.llegada=gm.llegada.filter(x=>x!=='Sin novedad')}gmRedraw();break}
+    case 'gm-snap':gm[el.dataset.k]='ai';gmRedraw();break;
+    case 'gm-step':gm.step=+el.dataset.s;gmRedraw();break;
+    case 'gm-finish':gmFinish();break;
+    case 'ref-new':refNew();break;
+    case 'ref-save':refSave();break;
+    case 'ref-disc':{const r=refPending(pos.hh);if(!r)break;const svc=CAT[r.svc];const k='rd-'+r.id;CAT[k]={id:k,name:'Descuento por venir recomendado, 50% de '+svc.name,price:-r2(svc.price*.5),tax:svc.tax,kind:'descuento',cat:'Descuento'};if(!pos.lines.some(l=>l.id===svc.id))posAdd(svc.id,pos.pets.slice());posAdd(k,[]);rerender();break}
+    case 'ref-credit':{const h=HHMAP[pos.hh];const k='rc-'+h.id;CAT[k]={id:k,name:'Crédito de recomendados',price:-h.refCredit,tax:0,kind:'descuento',cat:'Descuento'};posAdd(k,[]);rerender();break}
     case 'fac-f':facF=el.dataset.f;facLimit=30;rerender();break;
     case 'fac-more':facLimit+=30;rerender();break;
     case 'inv':{const r=invoices().find(x=>x.id===id);if(r)showInvoice(r);break}

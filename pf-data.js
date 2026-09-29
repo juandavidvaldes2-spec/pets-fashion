@@ -61,6 +61,7 @@ const products=[
  {id:'x6',name:'Pechera ajustable talla S',brand:'Pets Fashion',cat:'Accesorios',price:24.00,cost:11.5,stock:3,min:3,stale:true},
  {id:'x7',name:'Cama ortopédica mediana',brand:'Pets Fashion',cat:'Accesorios',price:89.00,cost:52.0,stock:4,min:2,stale:true},
  // Snacks
+ {id:'x8',name:'Royal Canin Gastrointestinal lata 400 g',brand:'Royal Canin',cat:'Farmacia',price:4.75,cost:3.1,stock:36,min:12},
  {id:'s1',name:'Pro Plan Dental Chew',brand:'Pro Plan',cat:'Snacks',price:8.50,cost:5.2,stock:30,min:12},
  {id:'s2',name:'Instinct Raw Boost Mixers',brand:'Instinct',cat:'Snacks',price:14.00,cost:9.1,stock:13,min:6},
  {id:'s0',name:'Snack de regalo',brand:'Pets Fashion',cat:'Snacks',price:0,cost:0.9,stock:60,min:20,gift:true}
@@ -82,6 +83,13 @@ const services=[
  {id:'v12',name:'Vacuna triple felina',area:'Clínica',price:26,min:15},
  {id:'v13',name:'Desparasitación interna',area:'Clínica',price:12,min:10},
  {id:'v18',name:'Limpieza dental',area:'Clínica',price:95,min:90},
+ {id:'l1',name:'Hemograma completo',area:'Clínica',price:28,min:0},
+ {id:'l2',name:'Glicemia en ayunas',area:'Clínica',price:12,min:0},
+ {id:'l3',name:'Perfil hepático',area:'Clínica',price:38,min:0},
+ {id:'l4',name:'Ultrasonido abdominal',area:'Clínica',price:55,min:30},
+ {id:'v20',name:'Fluidoterapia subcutánea',area:'Clínica',price:18,min:15},
+ {id:'v21',name:'Inyección antiemética',area:'Clínica',price:15,min:5},
+ {id:'v22',name:'Corte de uñas',area:'Peluquería',price:5,min:10},
  {id:'v14',name:'Hotel noche perro pequeño',area:'Hotel',price:30,min:0},
  {id:'v15',name:'Hotel noche perro mediano o grande',area:'Hotel',price:38,min:0},
  {id:'v19',name:'Hotel noche gato',area:'Hotel',price:24,min:0},
@@ -117,10 +125,12 @@ const BREEDS=[
  ['Gato doméstico','gato',[3.5,6],['atigradogris','naranja','negro','calico'],0,null,10],
  ['Maine coon','gato',[5.5,8],['atigrado'],56,'v4',2]
 ];
+const FEM=new Set(['Luna','Bella','Lola','Kira','Nala','Canela','Chispa','Mia','Maya','Frida','Kiara','Olivia','Galleta','Pelusa','Nieve','Chloe','Daisy','Sasha','Nina','Bruna','Maggie','Lulú','Peggy','Pepa','Mora','Cleo','Chanel','Menta','Mochi','Bombón','Cookie']);
+const MASC=new Set(['Max','Rocky','Toby','Milo','Simba','Bruno','Zeus','Pancho','Tango','Rufus','Leo','Kobe','Paco','Lucky','Duque','Brownie','Hachi','Apolo','Benito','Otto','Sultán','Bolt','Rex','Tito','Coco','Oreo','Tofu','Wasabi','Gucci']);
 const LONGHAIR=['Shih Tzu','Maltés','Yorkshire terrier','Pomerania','Cavalier King Charles','Persa'];
 
 const FIRST_F=['María José','Ana Lucía','Gabriela','Daniela','Carolina','Valentina','Isabel','Andrea','Mariela','Lourdes','Paola','Yamileth','Fernanda','Patricia','Natalia','Adriana','Sofía','Melissa','Lorena','Karla','Irene','Mónica','Diana','Raquel','Alejandra','Vanessa','Julieta','Camila','Itzel','Tatiana'];
-const FIRST_M=['Carlos','Luis','Roberto','Eduardo','Ricardo','José Miguel','Alberto','Fernando','Andrés','Rafael','Jorge','Gustavo','Iván','Daniel','Gabriel','Héctor','Rubén','Sebastián','Mauricio','Óscar','Marco','Felipe','Diego','Samuel','Abdiel','Omar','Aníbal','Javier','Manuel','Rodrigo'];
+const FIRST_M=['Carlos','Luis','Roberto','Eduardo','Ricardo','José Miguel','Alberto','Fernando','Andrés','Rafael','Jorge','Gonzalo','Iván','Daniel','Gabriel','Héctor','Rubén','Sebastián','Mauricio','Óscar','Marco','Felipe','Diego','Samuel','Abdiel','Omar','Aníbal','Javier','Manuel','Rodrigo'];
 const LAST=['Arias','Castillo','González','Rodríguez','Pérez','Herrera','Méndez','Sosa','Morales','Ríos','Delgado','Moreno','Navarro','Paredes','Rivera','Tapia','Vega','Quintero','Batista','Barría','Cedeño','Pinzón','Samaniego','Villarreal','Caballero','Espino','Saldaña','Guerra','Franco','Atencio','Montenegro','Solís','Jaramillo','De León','Ortega','Córdoba','Vásquez','Chen','Arauz','Guardia'];
 const PETNAMES=['Luna','Max','Coco','Rocky','Bella','Lola','Toby','Milo','Kira','Simba','Nala','Bruno','Canela','Chispa','Oreo','Mia','Zeus','Maya','Frida','Pancho','Tango','Kiara','Olivia','Bombón','Galleta','Pelusa','Nieve','Chloe','Rufus','Leo','Daisy','Mochi','Kobe','Paco','Lucky','Sasha','Tofu','Nina','Duque','Brownie','Cookie','Hachi','Apolo','Menta','Bruna','Maggie','Benito','Lulú','Peggy','Otto','Sultán','Wasabi','Chanel','Gucci','Pepa','Bolt','Rex','Mora','Cleo','Tito'];
 const ZONES=['San Francisco','Costa del Este','Obarrio','Punta Pacífica','Paitilla','Marbella','Coco del Mar','Carrasquilla','El Carmen','Avenida Balboa','El Cangrejo','Bella Vista','Condado del Rey','Clayton','Albrook','Santa María','Versalles','Costa Sur'];
@@ -173,7 +183,7 @@ for(let i=0;i<N;i++){
     const b=wpick(pool.map(x=>[x,x[6]]));
     let pn=pick(PETNAMES);let guard=0;while(hh.pets.some(id=>PETMAP[id].name===pn)&&guard++<10)pn=pick(PETNAMES);
     const weight=+rng(b[2][0],b[2][1]).toFixed(1);
-    const pet={id:'P'+(5000+pets.length),hh:hh.id,name:pn,sp,breed:b[0],coat:pick(b[3]),weight,sex:rnd()<.5?'Macho':'Hembra',birth:TODAY-ri(300,4200)*DAY,groomEvery:b[4],groomSvc:b[5],longHair:LONGHAIR.includes(b[0]),vax:[],notes:''};
+    const pet={id:'P'+(5000+pets.length),hh:hh.id,name:pn,sp,breed:b[0],coat:pick(b[3]),weight,sex:(x=>FEM.has(pn)?'Hembra':MASC.has(pn)?'Macho':x)(rnd()<.5?'Macho':'Hembra'),birth:TODAY-ri(300,4200)*DAY,groomEvery:b[4],groomSvc:b[5],longHair:LONGHAIR.includes(b[0]),vax:[],notes:''};
     pet.size=sp==='gato'?'gato':weight<11?'pequeño':'grande';
     pets.push(pet);PETMAP[pet.id]=pet;hh.pets.push(pet.id);
   }
@@ -368,7 +378,8 @@ const conv=[];
   conv.push({id:'c2',hh:h2.id,area:'Hotel',unread:1,time:'9:12 a.m.',msgs:[['in','Hola, quiero reservar hotel para '+p2.name+' en las fiestas patrias, del 2 al 5 de noviembre','9:12 a.m.']],ai:'Con gusto. Del 2 al 5 de noviembre quedan 3 suites para perro pequeño. Son 3 noches a 30 dólares la noche más ITBMS. La reservo a nombre de '+h2.name.split(' ')[0]+'?',ctx:'Usó el hotel en '+((h2.hotelHist||['las fiestas'])[0]).toLowerCase()+'. Noviembre se llena primero.'});
   const h3=byPred(h=>petsOf(h).length===1&&petsOf(h)[0].sp==='perro'&&h!==h1&&h!==h2);
   const p3=petsOf(h3)[0];
-  conv.push({id:'c3',hh:h3.id,area:'Clínica',unread:1,urgent:true,time:'8:57 a.m.',msgs:[['in',p3.name+' está vomitando desde anoche y no quiere comer','8:57 a.m.']],ai:'Lamento mucho lo de '+p3.name+'. Ya le avisé a la Dra. Ana. Hoy hay espacio a las 10:30 a.m. Pueden venir?',ctx:'Marcado urgente por la palabra vomitando. Se pasó a la clínica sin esperar a recepción.'});
+  {const k=clinicToday.findIndex(a=>a.h===10.5);if(k>=0)clinicToday[k]=Object.assign({},clinicToday[k],{pet:p3.id,hh:h3.id,svc:'v9',who:'Dra. Ana',reason:'Vómitos desde anoche, no quiere comer',script:'gastro',fromChat:true,status:'En proceso'})}
+  conv.push({id:'c3',hh:h3.id,area:'Clínica',unread:1,urgent:true,time:'8:57 a.m.',msgs:[['in',p3.name+' está vomitando desde anoche y no quiere comer','8:57 a.m.']],ai:'Lamento mucho lo de '+p3.name+'. Ya le avisé a la Dra. Ana. Hoy hay espacio a las 10:30 a.m. Pueden venir?',ctx:'Marcado urgente por la palabra vomitando. Se pasó a la clínica sin esperar a recepción y quedó en la agenda de la Dra. Ana a las 10:30 a.m.'});
   const h4=byPred(h=>foodGroups.some(g=>g.hh===h.id&&g.product==='f3')&&h!==h1&&h!==h2&&h!==h3);
   conv.push({id:'c4',hh:h4.id,area:'Tienda',unread:0,time:'8:31 a.m.',msgs:[['in','Tienen el Royal Canin Mini Adult de 7.5?','8:30 a.m.'],['out','Sí, quedan 11 sacos. Son 74.90 dólares y el delivery a su zona es gratis. Se lo enviamos hoy?','8:31 a.m.']],ai:null,ctx:'Respondido por el asistente con el inventario en vivo.'});
   const h5=byPred(h=>h.balance>0);
@@ -463,5 +474,38 @@ const seedAppts=[];
   conv.unshift(...rc);
 })();
 
-window.PF={hourNow,TODAY,DAY,at,CAT,products,services,households,HHMAP,pets,PETMAP,sales,foodGroups,groomToday,clinicToday,ROOMS,stays,daycareToday,conv,orders,seedAppts,ZONES,FREE_ZONES,GROOMERS,VETS,HOLIDAYS,gramsFor};
+/* ---------- Cuentas que llegan a recepción desde las áreas ---------- */
+const recepcion=[];
+(function(){
+  const fmt=h=>{const H=Math.floor(h),M=Math.round((h-H)*60);return (H>12?H-12:H)+':'+String(M).padStart(2,'0')+(H>=12?' p.m.':' a.m.')};
+  groomToday.filter(a=>a.status==='Terminado').slice(-2).forEach((a,i)=>{
+    const p=PETMAP[a.pet];const lines=[{id:a.svc,q:1,pets:[p.id]}];
+    if(p.longHair&&a.svc!=='v2')lines.push({id:'v3',q:1,pets:[p.id]});
+    lines.push({id:'v22',q:1,pets:[p.id]});
+    recepcion.push({id:'RQ-G'+i,hh:a.hh,pets:[p.id],area:'Peluquería',who:a.who,time:fmt(a.h+a.dur),lines,note:'Listo para recoger'});
+  });
+  const out=stays.find(s=>Math.round((s.to-TODAY)/DAY)===0&&PETMAP[s.pet].sp==='perro');
+  if(out){const p=PETMAP[out.pet];const n=Math.max(1,Math.round((out.to-out.from)/DAY));recepcion.push({id:'RQ-H',hh:out.hh,pets:[p.id],area:'Hotel',who:'Hotel',time:'Sale hoy',lines:[{id:p.size==='pequeño'?'v14':'v15',q:n,pets:[p.id]}],note:n+(n===1?' noche':' noches')})}
+})();
+
+/* ---------- Programa de recomendados, el Mes del Recomendado de Pets Fashion ---------- */
+const referrals=[];
+(function(){
+  const clean=x=>x.normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z]/g,'');
+  households.forEach((h,i)=>{if(!h.real)h.refCode=clean(h.name.split(' ')[0]).slice(0,9)+'-'+String(100+((i*37)%900))});
+  const JV=HHMAP['H-JV'];if(JV)JV.refCode='JUAN-247';
+  const nuevos=households.filter(h=>!h.real&&TODAY-h.since<80*DAY&&!h.lostAt);
+  const fieles=households.filter(h=>!h.real&&h.loyal==='fiel'&&!h.lostAt&&TODAY-h.since>200*DAY);
+  const svcOf=h=>{const p=h.pets.map(id=>PETMAP[id]).find(p=>p.groomSvc)||PETMAP[h.pets[0]];return p&&p.groomSvc?p.groomSvc:'v1'};
+  nuevos.slice(0,22).forEach((h,k)=>{
+    const from=pick(fieles);const svc=CAT[svcOf(h)];const first=sales.filter(x=>x.hh===h.id).sort((a,b)=>a.t-b.t)[0];
+    const used=!!first&&k%5!==4;
+    const r={id:'RF'+k,t:h.since,from:from.id,to:h.id,code:from.refCode,svc:svc.id,price:svc.price,disc:used?svc.price*.5:0,credit:used?svc.price*.25:0,status:used?'Usó su beneficio':'Registrado',redeemed:used&&rnd()<.4};
+    referrals.push(r);
+    if(r.credit&&!r.redeemed)from.refCredit=+( (from.refCredit||0)+r.credit).toFixed(2);
+  });
+  referrals.sort((a,b)=>b.t-a.t);
+})();
+
+window.PF={hourNow,TODAY,DAY,at,CAT,products,services,households,HHMAP,pets,PETMAP,sales,foodGroups,groomToday,clinicToday,ROOMS,stays,daycareToday,conv,orders,seedAppts,recepcion,referrals,ZONES,FREE_ZONES,GROOMERS,VETS,HOLIDAYS,gramsFor};
 })();
