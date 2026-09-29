@@ -1,4 +1,4 @@
-/* Pets Fashion 360 · datos de ejemplo
+/* Pets Fashion · datos de ejemplo
    Todo lo que genera este archivo es ficticio, salvo lo marcado como REAL,
    que sale de las conversaciones de WhatsApp de Juan Valdés con la tienda
    y del catálogo que Pets Fashion publicó en su tienda web. */

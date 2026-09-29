@@ -1,8 +1,8 @@
-/* Pets Fashion 360 · prototipo navegable · EnLínea Solutions */
+/* Pets Fashion · prototipo navegable · EnLínea Solutions */
 (function(){
 'use strict';
 const PF=window.PF;const {TODAY,DAY,CAT,HHMAP,PETMAP}=PF;
-const KEY='pf360-v1',ACCESS='PETS360';
+const KEY='pfs-v1',ACCESS=['PETSFASHION','PETS360'];
 
 /* ---------- Estado guardado ---------- */
 let st={};try{st=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){st={}}
@@ -232,14 +232,14 @@ function shell(){
   const unread=PF.conv.reduce((a,c)=>a+(c.unread||0),0);
   const pedidos=PF.orders.filter(o=>o.status==='Nuevo'||o.status==='Pagado').length;
   const count=id=>id==='radar'?`<span class="nav-count">${pend}</span>`:id==='conversaciones'&&unread?`<span class="nav-count soft">${unread}</span>`:id==='pedidos'&&pedidos?`<span class="nav-count soft">${pedidos}</span>`:'';
-  return `<aside class="sidebar"><a class="brand" href="#hoy"><img src="./assets/pf-mark.png" alt="Pets Fashion"><span><b>PetsFashion</b><small>360 · GESTIÓN</small></span></a>
+  return `<aside class="sidebar"><a class="brand" href="#hoy"><img src="./assets/pf-mark.png" alt="Pets Fashion"><span><b>PetsFashion</b><small>SISTEMA DE GESTIÓN</small></span></a>
   <nav>${NAV.map(([g,items])=>`${g?`<div class="nav-group">${g}</div>`:''}${items.map(([id,icn,l])=>`<a href="#${id}" class="nav-item ${route===id?'active':''}">${ic(icn)}<span>${l}</span>${count(id)}</a>`).join('')}`).join('')}</nav>
   <button class="ai-launch" data-a="ai">${ic('spark')}<div>Pets Fashion IA<small>Pregúntele a sus datos</small></div></button>
   <div class="side-foot">${ic('user')}<div><b>Gerencia</b>Perfil de prueba</div><span class="dot" title="Prototipo activo"></span></div></aside>
   <div class="main-shell"><header class="topbar"><div class="crumb"><button class="icon-btn menu-btn" data-a="menu" aria-label="Abrir menú">${ic('menu')}</button><span>Pets Fashion</span>${ic('chev')}<strong>${LABEL[route]}</strong></div>
   <div class="top-actions"><button class="search-btn" data-a="search" aria-label="Buscar">${ic('search')}<span>Buscar familia, mascota o producto</span><kbd>⌘ K</kbd></button><span class="proto-tag"><i></i>PROTOTIPO</span><button class="icon-btn" data-a="ai" aria-label="Asistente">${ic('spark')}<b></b></button></div></header>
   <main id="main">${view()}</main>
-  <footer class="app-foot"><span>Pets Fashion 360 · Prototipo con datos de ejemplo</span><span>EnLínea Solutions · <button class="link" data-a="reset" style="font-size:12px">Restablecer datos de ejemplo</button></span></footer></div>`;
+  <footer class="app-foot"><span>Pets Fashion · Prototipo con datos de ejemplo</span><span>EnLínea Solutions · <button class="link" data-a="reset" style="font-size:12px">Restablecer datos de ejemplo</button></span></footer></div>`;
 }
 function view(){
   switch(route){
@@ -1050,12 +1050,12 @@ document.addEventListener('click',e=>{
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOverlay();if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'&&document.getElementById('app').innerHTML){e.preventDefault();openSearch()}});
 
 /* ---------- Puerta de acceso ---------- */
-function ok(){try{return sessionStorage.getItem('pf360-ok')==='1'}catch(e){return false}}
+function ok(){try{return sessionStorage.getItem('pfs-ok')==='1'}catch(e){return false}}
 function start(){document.getElementById('gate').hidden=true;render()}
 if(ok())start();
 else{
   const g=document.getElementById('gate');g.hidden=false;const inp=document.getElementById('gate-input');
-  const go=()=>{if(inp.value.trim().toUpperCase()===ACCESS){try{sessionStorage.setItem('pf360-ok','1')}catch(e){}start()}else{document.getElementById('gate-error').textContent='La clave no es correcta.';inp.select()}};
+  const go=()=>{if(ACCESS.includes(inp.value.trim().toUpperCase().replace(/\s+/g,''))){try{sessionStorage.setItem('pfs-ok','1')}catch(e){}start()}else{document.getElementById('gate-error').textContent='La clave no es correcta.';inp.select()}};
   document.getElementById('gate-btn').onclick=go;inp.onkeydown=e=>{if(e.key==='Enter')go()};setTimeout(()=>inp.focus(),60);
 }
 })();
