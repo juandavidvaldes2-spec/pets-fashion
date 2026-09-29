@@ -327,8 +327,8 @@ sales.sort((a,b)=>a.t-b.t);
 
 /* ---------- Agenda de hoy ---------- */
 const hReal=new Date().getHours()+new Date().getMinutes()/60;
-// fuera del horario de la tienda el prototipo muestra la agenda como si fueran las 10:45 a.m.
-const hourNow=hReal>=7.5&&hReal<=17.5?hReal:10.75;
+// el prototipo siempre muestra la agenda como si fueran las 10:45 a.m., a cualquier hora que se abra
+const hourNow=10.75;
 function status(h,dur){if(hourNow>=h+dur)return 'Terminado';if(hourNow>=h)return 'En proceso';return rnd()<.82?'Confirmado':'Por confirmar'}
 const groomToday=[];
 const candidates=pets.filter(p=>p.groomEvery&&p.lastGroom&&!p.real&&HHMAP[p.hh].loyal!=='perdido');
