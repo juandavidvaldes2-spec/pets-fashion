@@ -362,19 +362,19 @@ const conv=[];
   const inAgenda=new Set(groomToday.map(a=>a.pet));
   const h1=byPred(h=>petsOf(h).some(p=>p.groomEvery&&!inAgenda.has(p.id))&&h.loyal==='fiel');
   const p1=petsOf(h1).find(p=>p.groomEvery&&!inAgenda.has(p.id));
-  conv.push({id:'c1',hh:h1.id,area:'Peluquería',unread:2,time:'9:41 a.m.',msgs:[['in','Buenos días, ¿tienen espacio el sábado para '+p1.name+'?','9:40 a.m.'],['in','Temprano si se puede','9:41 a.m.']],ai:'Buenos días. El sábado a las 9:00 a.m. hay espacio con '+(p1.groomer||'Keyla')+', que es quien atiende a '+p1.name+' siempre. ¿Se lo aparto?',ctx:p1.name+' se baña cada '+Math.round(p1.groomEvery/7)+' semanas y ya le toca.'});
+  conv.push({id:'c1',hh:h1.id,area:'Peluquería',unread:2,time:'9:41 a.m.',msgs:[['in','Buenos días, tienen espacio el sábado para '+p1.name+'?','9:40 a.m.'],['in','Temprano si se puede','9:41 a.m.']],ai:'Buenos días. El sábado a las 9:00 a.m. hay espacio con '+(p1.groomer||'Keyla')+', que es quien atiende a '+p1.name+' siempre. Se lo aparto?',ctx:p1.name+' se baña cada '+Math.round(p1.groomEvery/7)+' semanas y ya le toca.'});
   const h2=byPred(h=>h.hotelUser&&petsOf(h).some(p=>p.sp==='perro'));
   const p2=petsOf(h2).find(p=>p.sp==='perro');
-  conv.push({id:'c2',hh:h2.id,area:'Hotel',unread:1,time:'9:12 a.m.',msgs:[['in','Hola, quiero reservar hotel para '+p2.name+' en las fiestas patrias, del 2 al 5 de noviembre','9:12 a.m.']],ai:'Con gusto. Del 2 al 5 de noviembre quedan 3 suites para perro pequeño. Son 3 noches a 30 dólares la noche más ITBMS. ¿La reservo a nombre de '+h2.name.split(' ')[0]+'?',ctx:'Usó el hotel en '+((h2.hotelHist||['las fiestas'])[0]).toLowerCase()+'. Noviembre se llena primero.'});
+  conv.push({id:'c2',hh:h2.id,area:'Hotel',unread:1,time:'9:12 a.m.',msgs:[['in','Hola, quiero reservar hotel para '+p2.name+' en las fiestas patrias, del 2 al 5 de noviembre','9:12 a.m.']],ai:'Con gusto. Del 2 al 5 de noviembre quedan 3 suites para perro pequeño. Son 3 noches a 30 dólares la noche más ITBMS. La reservo a nombre de '+h2.name.split(' ')[0]+'?',ctx:'Usó el hotel en '+((h2.hotelHist||['las fiestas'])[0]).toLowerCase()+'. Noviembre se llena primero.'});
   const h3=byPred(h=>petsOf(h).length===1&&petsOf(h)[0].sp==='perro'&&h!==h1&&h!==h2);
   const p3=petsOf(h3)[0];
-  conv.push({id:'c3',hh:h3.id,area:'Clínica',unread:1,urgent:true,time:'8:57 a.m.',msgs:[['in',p3.name+' está vomitando desde anoche y no quiere comer','8:57 a.m.']],ai:'Lamento mucho lo de '+p3.name+'. Ya le avisé a la Dra. Ana. Hoy hay espacio a las 10:30 a.m. ¿Pueden venir?',ctx:'Marcado urgente por la palabra vomitando. Se pasó a la clínica sin esperar a recepción.'});
+  conv.push({id:'c3',hh:h3.id,area:'Clínica',unread:1,urgent:true,time:'8:57 a.m.',msgs:[['in',p3.name+' está vomitando desde anoche y no quiere comer','8:57 a.m.']],ai:'Lamento mucho lo de '+p3.name+'. Ya le avisé a la Dra. Ana. Hoy hay espacio a las 10:30 a.m. Pueden venir?',ctx:'Marcado urgente por la palabra vomitando. Se pasó a la clínica sin esperar a recepción.'});
   const h4=byPred(h=>foodGroups.some(g=>g.hh===h.id&&g.product==='f3')&&h!==h1&&h!==h2&&h!==h3);
-  conv.push({id:'c4',hh:h4.id,area:'Tienda',unread:0,time:'8:31 a.m.',msgs:[['in','¿Tienen el Royal Canin Mini Adult de 7.5?','8:30 a.m.'],['out','Sí, quedan 11 sacos. Son 74.90 dólares y el delivery a su zona es gratis. ¿Se lo enviamos hoy?','8:31 a.m.']],ai:null,ctx:'Respondido por el asistente con el inventario en vivo.'});
+  conv.push({id:'c4',hh:h4.id,area:'Tienda',unread:0,time:'8:31 a.m.',msgs:[['in','Tienen el Royal Canin Mini Adult de 7.5?','8:30 a.m.'],['out','Sí, quedan 11 sacos. Son 74.90 dólares y el delivery a su zona es gratis. Se lo enviamos hoy?','8:31 a.m.']],ai:null,ctx:'Respondido por el asistente con el inventario en vivo.'});
   const h5=byPred(h=>h.balance>0);
-  if(h5)conv.push({id:'c5',hh:h5.id,area:'Tienda',unread:1,time:'Ayer',msgs:[['in','Hola, ¿cuánto les debo?','6:12 p.m.']],ai:'Hola. El saldo pendiente es de '+h5.balance.toFixed(2)+' dólares. Le envío el estado de cuenta con el detalle por mascota y el link de Yappy para pagarlo.',ctx:'Tiene cargos abiertos del último mes.'});
+  if(h5)conv.push({id:'c5',hh:h5.id,area:'Tienda',unread:1,time:'Ayer',msgs:[['in','Hola, cuánto les debo?','6:12 p.m.']],ai:'Hola. El saldo pendiente es de '+h5.balance.toFixed(2)+' dólares. Le envío el estado de cuenta con el detalle por mascota y el link de Yappy para pagarlo.',ctx:'Tiene cargos abiertos del último mes.'});
   const h6=byPred(h=>h.daycare);
-  if(h6)conv.push({id:'c6',hh:h6.id,area:'Daycare',unread:0,time:'Ayer',msgs:[['in','¿Cuántos días me quedan del paquete?','4:02 p.m.'],['out','Le quedan '+h6.daycare.left+' días del paquete de 10. Cuando se acabe le avisamos para renovarlo.','4:02 p.m.']],ai:null,ctx:'Respondido por el asistente con el saldo del paquete.'});
+  if(h6)conv.push({id:'c6',hh:h6.id,area:'Daycare',unread:0,time:'Ayer',msgs:[['in','Cuántos días me quedan del paquete?','4:02 p.m.'],['out','Le quedan '+h6.daycare.left+' días del paquete de 10. Cuando se acabe le avisamos para renovarlo.','4:02 p.m.']],ai:null,ctx:'Respondido por el asistente con el saldo del paquete.'});
 })();
 
 /* ---------- Pedidos del día ---------- */
@@ -385,5 +385,83 @@ const orders=[];
   recent.forEach((x,i)=>orders.push({id:'PD-'+(3180+i),sale:x.id,hh:x.hh,status:st[i%st.length],channel:x.channel,total:x.total,items:x.lines,zone:HHMAP[x.hh].zone,time:pick(['8:10 a.m.','8:45 a.m.','9:20 a.m.','10:05 a.m.','10:40 a.m.','11:30 a.m.','12:15 p.m.'])}));
 })();
 
-window.PF={hourNow,TODAY,DAY,at,CAT,products,services,households,HHMAP,pets,PETMAP,sales,foodGroups,groomToday,clinicToday,ROOMS,stays,daycareToday,conv,orders,ZONES,FREE_ZONES,GROOMERS,VETS,HOLIDAYS,gramsFor};
+/* ---------- Conversaciones que abrió el radar, ejemplos completos ---------- */
+const seedAppts=[];
+(function(){
+  const DIAS=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  const cap=x=>x.charAt(0).toUpperCase()+x.slice(1);
+  const m2=n=>'$'+n.toFixed(2);
+  const fdl=t=>{const d=new Date(t);return d.getDate()+' de '+MESL[d.getMonth()]};
+  const firstN=h=>{const p=h.name.split(' ');return ['José','Lucía','Fernanda','Miguel'].includes(p[1])?p[0]+' '+p[1]:p[0]};
+  const nm=ids=>{const n=ids.map(id=>PETMAP[id].name);return n.length<2?n[0]:n.slice(0,-1).join(', ')+' y '+n[n.length-1]};
+  const shortP=p=>p.cat==='Antiparasitario'?p.brand:p.name.replace(/ \d+(\.\d+)? kg$/,'');
+  const used=new Set(conv.map(c=>c.hh));
+  const inAg=new Set(groomToday.map(a=>a.pet));
+  const ok=h=>h&&!h.real&&!h.lostAt&&h.loyal==='fiel'&&!used.has(h.id);
+  const rc=[];
+
+  // 1. Alimento por acabarse, termina en venta pagada por Yappy
+  const gA=foodGroups.filter(g=>{const h=HHMAP[g.hh];if(!(ok(h)&&g.buys.length>=2&&CAT[g.product].sp==='perro'))return false;const left=(g.buys[g.buys.length-1]+g.cycle*DAY-TODAY)/DAY;return left>=-3&&left<=2}).sort((x,y)=>(y.pets.length===2)-(x.pets.length===2)||FREE_ZONES.includes(HHMAP[y.hh].zone)-FREE_ZONES.includes(HHMAP[x.hh].zone)||y.buys.length-x.buys.length)[0];
+  if(gA){
+    const h=HHMAP[gA.hh],f=firstN(h),pn=nm(gA.pets),pr=CAT[gA.product],fz=FREE_ZONES.includes(h.zone),les=gA.pets.length>1?'les':'le';used.add(h.id);
+    const sale=makeSale(TODAY,h,[[pr.id,1,gA.pets],['s0',1,gA.pets]],{area:'Tienda',channel:'WhatsApp',pay:'Yappy'});gA.buys.push(TODAY);
+    const oid='PD-3190';orders.push({id:oid,sale:sale.id,hh:h.id,status:'En ruta',channel:'WhatsApp',total:sale.total,items:sale.lines,zone:h.zone,time:'8:06 a.m.',radar:true});
+    rc.push({id:'rc-ali',hh:h.id,area:'Tienda',radar:'alimento',unread:0,time:'8:07 a.m.',result:`Venta de ${m2(sale.total)} pagada por Yappy en 6 minutos. Nadie de la tienda escribió.`,ctx:`El radar calculó que el saco de ${pr.name} que compraron el ${fdl(gA.buys[gA.buys.length-2])} se acababa hoy con el consumo de ${pn}.`,msgs:[
+      {d:'out',tpl:true,card:{name:pr.name,price:pr.price,brand:pr.brand},t:`Hola ${f} 🐾 A ${pn} se ${les} debe estar acabando el ${shortP(pr)}. Si quieres, te enviamos un saco nuevo a tu casa${fz?' con delivery gratis':''}. Solo toca el botón de abajo.`,btns:['Sí, envíenmelo','Todavía me queda','Quiero otro producto'],picked:0,time:'8:00 a.m.'},
+      {d:'in',t:'Sí, envíenmelo',time:'8:03 a.m.'},
+      {d:'out',t:`Perfecto, ${f}. Te confirmo el pedido\n\n1 × ${pr.name}\n${m2(pr.price)}\nSnack de regalo para ${pn}${fz?'\nDelivery gratis':''}\n\nTotal ${m2(sale.total)}\n\nLo enviamos a la dirección de siempre en ${h.zone}?`,btns:['Sí, a la de siempre','Otra dirección'],picked:0,time:'8:03 a.m.'},
+      {d:'in',t:'Sí, a la de siempre',time:'8:04 a.m.'},
+      {d:'in',t:'Lo pueden traer antes de las 12? Es que salgo después',time:'8:04 a.m.'},
+      {d:'out',ai:true,pay:sale.total,t:'Claro, sale en la ruta de la mañana y llega antes de las 12. Aquí tienes el link para pagar con Yappy.',time:'8:05 a.m.'},
+      {d:'sys',t:`Pago recibido por Yappy · ${m2(sale.total)} · conciliado con el pedido ${oid}`,time:'8:06 a.m.'},
+      {d:'out',t:`Listo, recibimos tu pago 💗 Le pusimos un snack de regalo a ${pn}. Te avisamos por aquí cuando el pedido salga.`,time:'8:06 a.m.'},
+      {d:'in',t:'Mil gracias 🙌',time:'8:07 a.m.'}
+    ]});
+  }
+
+  // 2. Desparasitante, el cliente pregunta y el asistente responde con los datos de la mascota
+  const pD=pets.find(p=>{const h=HHMAP[p.hh];if(!ok(h)||p.sp!=='perro'||!p.anti||!p.anti.last)return false;const left=Math.round((p.anti.last+p.anti.every*DAY-TODAY)/DAY);return left<=3&&left>=-6&&h.pets.length===1});
+  if(pD){
+    const h=HHMAP[pD.hh],f=firstN(h),pr=CAT[pD.anti.product];used.add(h.id);
+    const last=pD.anti.last;
+    const sale=makeSale(TODAY,h,[[pr.id,1,[pD.id]]],{area:'Tienda',channel:'WhatsApp',pay:'Yappy'});pD.anti.last=TODAY;
+    const oid='PD-3191';orders.push({id:oid,sale:sale.id,hh:h.id,status:'Pagado',channel:'WhatsApp',total:sale.total,items:sale.lines,zone:h.zone,time:'9:18 a.m.',radar:true});
+    rc.push({id:'rc-des',hh:h.id,area:'Tienda',radar:'antipulgas',unread:0,time:'9:18 a.m.',result:`El asistente respondió la duda con el peso de ${pD.name} y cerró una venta de ${m2(sale.total)}.`,ctx:`${pD.name} usa ${pr.name}. La dosis dura ${pr.days} días y la última se la llevaron el ${fdl(last)}.`,msgs:[
+      {d:'out',tpl:true,card:{name:pr.name,price:pr.price,brand:pr.brand},t:`Hola ${f} 🐾 A ${pD.name} le toca su desparasitante. La dosis de ${shortP(pr)} que se llevaron el ${fdl(last)} ya cumplió su tiempo. Te enviamos la siguiente para que no quede desprotegido?`,btns:['Sí, envíenmela','Ya la compré','Tengo una pregunta'],picked:2,time:'9:10 a.m.'},
+      {d:'in',t:'Tengo una pregunta',time:'9:13 a.m.'},
+      {d:'in',t:`Es la misma de la vez pasada? Creo que ${pD.name} subió de peso`,time:'9:13 a.m.'},
+      {d:'out',ai:true,t:`Buena pregunta. ${pD.name} pesó ${pD.weight} kg en su última visita y la presentación de ${pr.name.replace(pr.brand+' ','')} le sigue quedando bien. Si en la próxima consulta sale con más peso, la Dra. Ana le ajusta la dosis.`,time:'9:14 a.m.'},
+      {d:'in',t:'Ah ok perfecto, mándenla entonces',time:'9:16 a.m.'},
+      {d:'out',pay:sale.total,t:'Listo. Aquí tienes el link de Yappy. Apenas entre el pago la despachamos.',time:'9:16 a.m.'},
+      {d:'sys',t:`Pago recibido por Yappy · ${m2(sale.total)} · conciliado con el pedido ${oid}`,time:'9:18 a.m.'},
+      {d:'out',t:`Recibido, gracias 💗 Te la llevamos hoy en la tarde. La próxima dosis le toca el ${fdl(TODAY+pr.days*DAY)} y te avisamos unos días antes.`,time:'9:18 a.m.'}
+    ]});
+  }
+
+  // 3. Baño atrasado, el cliente escoge horario y pide algo extra
+  const pB=pets.find(p=>{const h=HHMAP[p.hh];if(!ok(h)||!p.groomEvery||!p.lastGroom||inAg.has(p.id)||p.sp!=='perro')return false;const over=Math.round((TODAY-p.lastGroom)/DAY)-p.groomEvery;return over>=7&&over<=28&&h.pets.length===1});
+  if(pB){
+    const h=HHMAP[pB.hh],f=firstN(h),who=pB.groomer||'Keyla',svc=CAT[pB.groomSvc];used.add(h.id);
+    const weeks=Math.round((TODAY-pB.lastGroom)/DAY/7);
+    const slots=[];let k=1;while(slots.length<2){const d=new Date(TODAY+k*DAY);if(d.getDay()!==0&&d.getDay()!==6)slots.push({t:d.getTime(),h:slots.length?14:10.5});k++}
+    let sat=TODAY+2*DAY;while(new Date(sat).getDay()!==6)sat+=DAY;slots.push({t:sat,h:9});
+    const lab=s=>{const d=new Date(s.t);const H=Math.floor(s.h),M=Math.round((s.h-H)*60);return cap(DIAS[d.getDay()])+' '+d.getDate()+', '+(H>12?H-12:H)+':'+String(M).padStart(2,'0')+(H>=12?' p.m.':' a.m.')};
+    const sl=slots[2];const fri=new Date(sl.t-DAY);
+    seedAppts.push({id:'AP-seed-1',hh:h.id,pets:[pB.id],area:'Peluquería',who,t:sl.t,h:sl.h,label:lab(sl),svc:svc.name+' y corte de uñas',from:'Radar'});
+    rc.push({id:'rc-ban',hh:h.id,area:'Peluquería',radar:'bano',unread:0,time:'Ayer',result:`Cita agendada para el ${lab(sl).toLowerCase()} sin llamada. El corte de uñas quedó anotado en la cita.`,ctx:`${pB.name} se baña cada ${Math.round(pB.groomEvery/7)} semanas y llevaba ${weeks} desde el último baño.`,msgs:[
+      {d:'out',tpl:true,t:`Hola ${f} 🛁 Ya van ${weeks} semanas desde el último baño de ${pB.name}. Le apartamos un espacio esta semana para que quede limpio como siempre?`,btns:['Ver horarios','La próxima semana','No por ahora'],picked:0,time:'6:00 p.m.'},
+      {d:'in',t:'Ver horarios',time:'6:12 p.m.'},
+      {d:'out',t:`Estos son los espacios que tiene ${who} esta semana para ${pB.name}`,btns:slots.map(lab),picked:2,time:'6:12 p.m.'},
+      {d:'in',t:lab(sl),time:'6:13 p.m.'},
+      {d:'in',t:'Le pueden cortar las uñas también?',time:'6:13 p.m.'},
+      {d:'out',ai:true,t:`Claro, lo anotamos en la cita para que ${who} se las corte. Te escribimos el ${DIAS[fri.getDay()]} para recordarte la cita de ${pB.name} 🐾`,time:'6:14 p.m.'},
+      {d:'sys',t:`Cita agendada · ${lab(sl)} · Peluquería con ${who}`,time:'6:14 p.m.'},
+      {d:'in',t:'Perfecto, gracias!',time:'6:15 p.m.'}
+    ]});
+  }
+  conv.unshift(...rc);
+})();
+
+window.PF={hourNow,TODAY,DAY,at,CAT,products,services,households,HHMAP,pets,PETMAP,sales,foodGroups,groomToday,clinicToday,ROOMS,stays,daycareToday,conv,orders,seedAppts,ZONES,FREE_ZONES,GROOMERS,VETS,HOLIDAYS,gramsFor};
 })();

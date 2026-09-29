@@ -151,7 +151,8 @@ function cycleOf(g){
   const avg=iv.slice(-4).reduce((a,b)=>a+b,0)/Math.min(4,iv.length);
   return .5*nominal+.5*avg;
 }
-const booked=pid=>st.appts.some(a=>a.pets.includes(pid));
+const allAppts=()=>[...PF.seedAppts,...st.appts];
+const booked=pid=>allAppts().some(a=>a.pets.includes(pid));
 const NEXT_HOL=[{name:'las fiestas patrias',key:'Fiestas patrias',from:PF.at(2026,11,2),to:PF.at(2026,11,5)},{name:'Navidad y fin de año',key:'Navidad y fin de año',from:PF.at(2026,12,20),to:PF.at(2027,1,3)}].find(h=>h.from>TODAY);
 
 /* ---------- Radar ---------- */
@@ -159,7 +160,7 @@ const TYPES={
  alimento:{label:'Alimento por acabarse',short:'Alimento',icon:'bag',meta:'Marketing'},
  bano:{label:'Baño atrasado',short:'Baño',icon:'scissors',meta:'Marketing'},
  vacuna:{label:'Vacunas por vencer',short:'Vacunas',icon:'syringe',meta:'Utilidad'},
- antipulgas:{label:'Antipulgas por renovar',short:'Antipulgas',icon:'shield',meta:'Marketing'},
+ antipulgas:{label:'Desparasitante por renovar',short:'Desparasitante',icon:'shield',meta:'Marketing'},
  hotel:{label:'Hotel en feriados',short:'Hotel',icon:'home',meta:'Marketing'},
  cumple:{label:'Cumpleaños',short:'Cumpleaños',icon:'cake',meta:'Marketing'},
  dormido:{label:'Familias que dejaron de venir',short:'Dormidas',icon:'moon',meta:'Marketing'}
@@ -206,11 +207,11 @@ function msgFor(o){
   const f=first(o.hh),pn=names(o.pets),free=PF.FREE_ZONES.includes(o.hh.zone)||o.hh.real;
   switch(o.type){
     case 'alimento':return {card:'bag',text:`Hola ${f} 🐾 A ${pn} se ${o.pets.length>1?'les':'le'} debe estar acabando el ${shortName(o.prod)}. Si quieres, te enviamos un saco nuevo a tu casa${free?' con delivery gratis':''}. Solo toca el botón de abajo.`,buttons:['Sí, envíenmelo','Todavía me queda','Quiero otro producto']};
-    case 'bano':return {text:`Hola ${f} 🛁 Ya van ${Math.round(o.since/7)} semanas desde el último baño de ${pn}. ¿${o.pets.length>1?'Les':'Le'} apartamos un espacio esta semana para que ${o.pets.length>1?'queden limpios':'quede limpio'} como siempre?`,buttons:['Ver horarios','La próxima semana','No por ahora']};
-    case 'vacuna':{const x=o.vax[0];return {text:`Hola ${f} 🐾 A ${x.p.name} le toca la vacuna ${x.v.name.toLowerCase()} ${x.left<0?'desde el '+fdl(x.v.due):'el '+fdl(x.v.due)}. ¿Le apartamos la cita en la clínica?`,buttons:['Ver horarios','Ya se la pusieron','Recordarme luego']}}
-    case 'antipulgas':return {card:'bag',text:`Hola ${f} 🐾 La dosis de ${shortName(o.prod)} de ${pn} ${o.left<0?'ya venció':'vence '+rel(o.left)}. ¿Te enviamos la siguiente para que no ${o.pets.length>1?'queden desprotegidos':'quede desprotegido'}?`,buttons:['Sí, envíenmela','Ya la compré','Recordarme luego']};
-    case 'hotel':return {text:`Hola ${f} 🐾 Ya vienen ${NEXT_HOL?NEXT_HOL.name:'los feriados'} y el hotel se llena primero en esas fechas. ¿Quieres que te apartemos una suite para ${pn}?`,buttons:['Sí, apartar','Ver precios','No esta vez']};
-    case 'cumple':return {text:`¡Feliz cumpleaños a ${pn}! 🎂 Cumple ${o.age} ${o.age===1?'año':'años'} ${rel(o.left)} y queremos celebrarlo. Pasa por la tienda esta semana y tiene un snack de regalo de parte de todo el equipo de Pets Fashion.`,buttons:['¡Gracias!','Agendar baño de cumpleaños']};
+    case 'bano':return {text:`Hola ${f} 🛁 Ya van ${Math.round(o.since/7)} semanas desde el último baño de ${pn}. ${o.pets.length>1?'Les':'Le'} apartamos un espacio esta semana para que ${o.pets.length>1?'queden limpios':'quede limpio'} como siempre?`,buttons:['Ver horarios','La próxima semana','No por ahora']};
+    case 'vacuna':{const x=o.vax[0];return {text:`Hola ${f} 🐾 A ${x.p.name} le toca la vacuna ${x.v.name.toLowerCase()} ${x.left<0?'desde el '+fdl(x.v.due):'el '+fdl(x.v.due)}. Le apartamos la cita en la clínica?`,buttons:['Ver horarios','Ya se la pusieron','Recordarme luego']}}
+    case 'antipulgas':return {card:'bag',text:`Hola ${f} 🐾 A ${pn} le toca su desparasitante. La dosis de ${shortName(o.prod)} ${o.left<0?'ya cumplió su tiempo':'vence '+rel(o.left)}. Te enviamos la siguiente para que no ${o.pets.length>1?'queden desprotegidos':'quede desprotegido'}?`,buttons:['Sí, envíenmela','Ya la compré','Recordarme luego']};
+    case 'hotel':return {text:`Hola ${f} 🐾 Ya vienen ${NEXT_HOL?NEXT_HOL.name:'los feriados'} y el hotel se llena primero en esas fechas. Quieres que te apartemos una suite para ${pn}?`,buttons:['Sí, apartar','Ver precios','No esta vez']};
+    case 'cumple':return {text:`Feliz cumpleaños a ${pn}! 🎂 Cumple ${o.age} ${o.age===1?'año':'años'} ${rel(o.left)} y queremos celebrarlo. Pasa por la tienda esta semana y tiene un snack de regalo de parte de todo el equipo de Pets Fashion.`,buttons:['Gracias!','Agendar baño de cumpleaños']};
     case 'dormido':return {card:'bag',text:`Hola ${f} 🐾 Hace tiempo no vemos a ${pn} por aquí y los extrañamos. Si necesitas su ${shortName(o.prod)}, te lo enviamos a tu casa esta semana.`,buttons:['Sí, envíenmelo','Ya no lo necesito','Hablar con alguien']};
   }
 }
@@ -219,7 +220,7 @@ function msgFor(o){
 const NAV=[
  ['', [['hoy','grid','Hoy']]],
  ['CRECIMIENTO',[['radar','radar','Radar de recompra'],['automatizaciones','mega','Automatizaciones']]],
- ['OPERACIÓN',[['agenda','calendar','Agenda'],['caja','cash','Caja'],['pedidos','truck','Pedidos y delivery'],['inventario','box','Inventario']]],
+ ['OPERACIÓN',[['agenda','calendar','Agenda'],['caja','cash','Caja'],['facturacion','receipt','Facturación DGI'],['pedidos','truck','Pedidos y delivery'],['inventario','box','Inventario']]],
  ['CLIENTES',[['familias','users','Familias y mascotas'],['conversaciones','chat','Conversaciones']]],
  ['DIRECCIÓN',[['reportes','chart','Reportes']]]
 ];
@@ -244,7 +245,7 @@ function view(){
   switch(route){
     case 'radar':return vRadar();case 'automatizaciones':return vAutos();case 'agenda':return vAgenda();case 'caja':return vCaja();
     case 'pedidos':return vPedidos();case 'inventario':return vInventario();case 'familias':return vFamilias();case 'conversaciones':return vConv();
-    case 'reportes':return vReportes();default:return vHoy();
+    case 'reportes':return vReportes();case 'facturacion':return vFactura();default:return vHoy();
   }
 }
 function render(keepScroll){const y=window.scrollY;document.getElementById('app').innerHTML=shell();document.body.classList.remove('nav-open');if(keepScroll)window.scrollTo(0,y);else window.scrollTo(0,0);afterRender()}
@@ -350,7 +351,7 @@ function vRadar(){
 function oppRow(o){
   const t=TYPES[o.type];const sent=st.sent[o.id];
   const urgent=(o.left!=null&&o.left<=0&&['alimento','antipulgas','vacuna'].includes(o.type));
-  return `<div class="opp ${o.hh.real?'real':''}">${pstack(o.pets,'md')}<div class="opp-main"><strong>${esc(oppTitle(o))}</strong><p>${esc(oppLine(o))}</p><div class="opp-tags"><span class="chip pink">${ic(t.icon)}${t.label}</span>${urgent?'<span class="chip bad">Urgente</span>':''}<span class="chip line">${ic('clock')}Le escribe mejor a las ${o.hh.bestHour}</span>${o.hh.real?'<span class="chip dark">Cliente real, compras del chat</span>':''}</div></div>
+  return `<div class="opp ${o.hh.real?'real':''}">${pstack(o.pets,'md')}<div class="opp-main"><strong>${esc(oppTitle(o))}</strong><p>${esc(oppLine(o))}</p><div class="opp-tags"><span class="chip pink">${ic(t.icon)}${t.label}</span>${urgent?'<span class="chip bad">Urgente</span>':''}<span class="chip outline">${ic('clock')}Le escribe mejor a las ${o.hh.bestHour}</span>${o.hh.real?'<span class="chip dark">Cliente real, compras del chat</span>':''}</div></div>
   <div class="opp-val"><b>${o.type==='cumple'?'Regalo':money(o.value)}</b><small>${o.type==='dormido'?money(o.annual,1)+' al año':o.type==='cumple'?'fidelización':'valor del aviso'}</small></div>
   <div class="opp-act">${sent?`<span class="sent-mark">${ic('check')}Enviado ${sent}</span><button class="btn ghost sm" data-a="sim" data-id="${o.id}">Ver</button>`:`<button class="btn ghost sm" data-a="sim" data-id="${o.id}">${ic('phone')}Ver mensaje</button><button class="btn wa sm" data-a="send" data-id="${o.id}">${ic('send')}Enviar</button>`}</div></div>`;
 }
@@ -379,7 +380,7 @@ function buildFlow(o){
     steps.push({i:'truck',t:'El pedido pasa a despacho',p:'Aparece en Pedidos y delivery con la dirección de la familia.'});
     const total=prod.price;
     S.start={bot:[{card:m.card,text:m.text}],btns:m.buttons.map((b,i)=>({l:b,go:['confirm','later','other'][i]})),light:1};
-    S.confirm={bot:[{text:`Perfecto, ${f}. Te confirmo el pedido\n\n1 × ${prod.name}\n${money(total)}${gift?'\nSnack de regalo para '+pn+'\nSin costo':''}${free?'\nDelivery gratis':''}\n\nTotal ${money(total)}\n\n¿Lo enviamos a la dirección de siempre?`}],btns:[{l:'Sí, a la de siempre',go:'pay'},{l:'Otra dirección',go:'addr'}],light:3};
+    S.confirm={bot:[{text:`Perfecto, ${f}. Te confirmo el pedido\n\n1 × ${prod.name}\n${money(total)}${gift?'\nSnack de regalo para '+pn+'\nSin costo':''}${free?'\nDelivery gratis':''}\n\nTotal ${money(total)}\n\nLo enviamos a la dirección de siempre?`}],btns:[{l:'Sí, a la de siempre',go:'pay'},{l:'Otra dirección',go:'addr'}],light:3};
     S.addr={bot:[{text:'Claro. Mándanos la ubicación por aquí y lo enviamos ahí.'}],btns:[{l:'📍 Compartir ubicación',go:'pay'}],light:3};
     S.pay={bot:[{pay:total,text:'Toca el link para pagar con Yappy. Apenas entre el pago lo despachamos.'}],btns:[{l:'Pagar '+money(total)+' con Yappy',go:'paid'}],light:3};
     S.paid={sys:`Pago recibido por Yappy · ${money(total)}`,bot:[{text:`Listo, recibimos tu pago 💗 El pedido sale hoy a tu dirección.${gift?' Le pusimos un snack de regalo a '+pn+'.':''}`}],btns:[],light:6,end:'buy'};
@@ -400,7 +401,7 @@ function buildFlow(o){
     }else S.start={bot:[{text:m.text}],btns:[{l:m.buttons[0],go:'slots'},{l:m.buttons[1],go:o.type==='vacuna'?'done':'next'},{l:m.buttons[2],go:'no'}],light:1};
     S.slots={bot:[{text:`Estos son los espacios libres ${area==='Clínica'?'en la clínica':'con '+who} esta semana para ${pn}`}],btns:slots.map(s=>({l:s.label,go:'booked',slot:s})),light:2};
     S.booked={bot:[{text:`Listo ✅ ${pn} ${many?'quedan agendados':'queda agendado'} el {slot}${area==='Clínica'?' en la clínica':' con '+who}. Te escribimos un día antes para recordarte.`}],btns:[],light:5,end:'book'};
-    S.next={bot:[{text:'Perfecto. ¿Te apartamos la próxima semana en el mismo horario de la última vez?'}],btns:[{l:'Sí, apártalo',go:'booked',slot:{t:TODAY+8*DAY,h:9,label:cap(DIAS[new Date(TODAY+8*DAY).getDay()])+' '+new Date(TODAY+8*DAY).getDate()+', 9:00 a.m.'}},{l:'Yo les escribo',go:'no'}],light:2};
+    S.next={bot:[{text:'Perfecto. Te apartamos la próxima semana en el mismo horario de la última vez?'}],btns:[{l:'Sí, apártalo',go:'booked',slot:{t:TODAY+8*DAY,h:9,label:cap(DIAS[new Date(TODAY+8*DAY).getDay()])+' '+new Date(TODAY+8*DAY).getDate()+', 9:00 a.m.'}},{l:'Yo les escribo',go:'no'}],light:2};
     S.done={bot:[{text:'Gracias por avisarnos. Lo anotamos en su ficha para no volver a recordártelo.'}],btns:[],light:2,end:'later',note:'La ficha de vacunas se actualiza con la fecha que dio el cliente. Si se la pusieron en otra clínica, también queda registrado.'};
     S.no={bot:[{text:'Entendido. Aquí estamos cuando lo necesites 🐾'}],btns:[],light:2,end:'later',note:'El sistema no insiste. Vuelve a avisar solo cuando se cumpla la siguiente frecuencia.'};
   }else if(o.type==='hotel'){
@@ -412,7 +413,7 @@ function buildFlow(o){
     const nights=[['Del 2 al 5 de noviembre',3],['Del 3 al 5 de noviembre',2],['Del 1 al 6 de noviembre',5]];
     S.start={bot:[{text:m.text}],btns:[{l:m.buttons[0],go:'dates'},{l:m.buttons[1],go:'prices'},{l:m.buttons[2],go:'no'}],light:1};
     S.prices={bot:[{text:`La noche es de 30 dólares para perro pequeño, 38 para mediano o grande y 24 para gato, más ITBMS. Incluye paseos y su alimento de siempre.`}],btns:[{l:'Apartar fechas',go:'dates'}],light:2};
-    S.dates={bot:[{text:'¿Qué noches necesitas?'}],btns:nights.map(n=>({l:n[0],go:'booked',slot:{label:n[0].toLowerCase(),n:n[1]}})),light:2};
+    S.dates={bot:[{text:'Qué noches necesitas?'}],btns:nights.map(n=>({l:n[0],go:'booked',slot:{label:n[0].toLowerCase(),n:n[1]}})),light:2};
     S.booked={bot:[{text:`Listo ✅ La suite de ${pn} queda apartada ${'{slot}'}. Te mandamos el detalle y el link de Yappy para el abono.`}],btns:[],light:4,end:'hotel'};
     S.no={bot:[{text:'Entendido. Aquí estamos cuando lo necesites 🐾'}],btns:[],light:2,end:'later',note:'El sistema no insiste. Si se acerca otro feriado largo, vuelve a avisar.'};
   }
@@ -430,6 +431,7 @@ function openSim(id){
   simNode('start');
 }
 function simLight(n){sim.light=n;document.querySelectorAll('#sim-steps .step').forEach((el,i)=>{el.classList.toggle('on',i<=n);el.classList.toggle('now',i===n)})}
+function simLog(m){if(sim)(sim.tx=sim.tx||[]).push(Object.assign({time:nowLabel()},m))}
 function simBubble(html,cls){const b=document.getElementById('wa-body');if(!b)return;b.insertAdjacentHTML('beforeend',html);b.scrollTop=b.scrollHeight}
 function botHTML(m){
   const o=sim.o;let card='';
@@ -441,8 +443,8 @@ function botHTML(m){
 function simNode(key){
   const n=sim.S[key];if(!n)return;sim.busy=true;
   const show=()=>{
-    if(n.sys)simBubble(`<div class="wa-sys">${esc(n.sys)}</div>`);
-    n.bot.forEach(m=>simBubble(botHTML(m)));
+    if(n.sys){simBubble(`<div class="wa-sys">${esc(n.sys)}</div>`);simLog({d:'sys',t:n.sys})}
+    n.bot.forEach((m,j)=>{simBubble(botHTML(m));simLog({d:'out',t:m.text.replace('{slot}',sim.slot?sim.slot.label.toLowerCase():''),tpl:key==='start'&&j===0,pay:m.pay,card:m.card==='bag'&&sim.o.prod?{name:sim.o.prod.name,price:sim.o.prod.price,brand:sim.o.prod.brand}:null,btns:j===n.bot.length-1&&n.btns.length?n.btns.map(b=>b.l):null})});
     if(n.btns.length)simBubble(`<div class="wa-btns" id="wa-btns-${key}">${n.btns.map((b,i)=>`<button data-a="wa" data-k="${key}" data-i="${i}">${esc(b.l)}</button>`).join('')}</div>`);
     simLight(n.light);sim.busy=false;
     if(n.note)document.getElementById('sim-note').innerHTML=`<div class="sim-hint">${ic('spark')}<span>${esc(n.note)}</span></div>`;
@@ -456,6 +458,8 @@ function simTap(key,i){
   const box=document.getElementById('wa-btns-'+key);if(box){box.classList.add('used');box.children[i].classList.add('picked')}
   if(b.slot)sim.slot=b.slot;
   simBubble(`<div class="bub out">${esc(b.l)}<time>${nowLabel()}</time></div>`);
+  const lastOut=(sim.tx||[]).slice().reverse().find(m=>m.btns);if(lastOut&&lastOut.picked==null)lastOut.picked=i;
+  simLog({d:'in',t:b.l});
   sim.log.push(b.l);
   if(sim.light<2)simLight(2);
   simNode(b.go);
@@ -463,7 +467,7 @@ function simTap(key,i){
 function simEnd(kind){
   const o=sim.o;const foot=document.getElementById('sim-foot');
   st.sent[o.id]=st.sent[o.id]||nowLabel();
-  const chat={hh:o.hh.id,area:o.type==='bano'||o.type==='cumple'?'Peluquería':o.type==='vacuna'?'Clínica':o.type==='hotel'?'Hotel':'Tienda',log:sim.log.slice(),msg:msgFor(o).text,t:nowLabel(),kind};
+  const chat={type:o.type,msgs:(sim.tx||[]).slice(),hh:o.hh.id,area:o.type==='bano'||o.type==='cumple'?'Peluquería':o.type==='vacuna'?'Clínica':o.type==='hotel'?'Hotel':'Tienda',log:sim.log.slice(),msg:msgFor(o).text,t:nowLabel(),kind};
   st.chats[o.hh.id]=chat;
   if(kind==='buy'){
     const lines=[{id:o.prod.id,name:o.prod.name,q:1,price:o.prod.price,tax:o.prod.tax,pets:o.pets.slice()}];
@@ -498,7 +502,7 @@ const AUTOS=[
  {k:'alimento',title:'Alimento por acabarse',p:'Cuando el saco de una familia llega al final según el consumo de sus mascotas.',when:'Entre 3 y 5 días antes',meta:'Marketing'},
  {k:'bano',title:'Baño atrasado',p:'Cuando una mascota pasa su frecuencia habitual de baño.',when:'Una semana después de su fecha habitual',meta:'Marketing'},
  {k:'vacuna',title:'Vacunas por vencer',p:'Para cada vacuna registrada en la clínica, con la fecha exacta.',when:'Dos semanas antes del vencimiento',meta:'Utilidad'},
- {k:'antipulgas',title:'Antipulgas por renovar',p:'Según lo que dura cada producto. Bravecto 12 semanas, la caja de NexGard tres meses.',when:'El día que vence la dosis',meta:'Marketing'},
+ {k:'antipulgas',title:'Desparasitante y antipulgas',p:'Según lo que dura cada producto. Bravecto 12 semanas, la caja de NexGard tres meses.',when:'El día que vence la dosis',meta:'Marketing'},
  {k:'hotel',title:'Hotel en feriados',p:'Para las familias que ya usaron el hotel en esas mismas fechas el año anterior.',when:'45 días antes de cada feriado largo',meta:'Marketing'},
  {k:'cumple',title:'Cumpleaños de la mascota',p:'Con el nombre de la mascota y un snack de regalo al pasar por la tienda.',when:'El día del cumpleaños',meta:'Marketing'},
  {k:'dormido',title:'Familias que dejaron de venir',p:'Cuando una familia pasa el doble de su frecuencia normal sin comprar.',when:'Una sola vez, sin insistir',meta:'Marketing'},
@@ -513,7 +517,7 @@ function vAutos(){
   <div class="auto-grid">${AUTOS.map(a=>{
     const on=st.autos[a.k]!==false;const list=r.filter(o=>o.type===a.k);const sample=list.find(o=>o.hh.real)||list[0];
     const dc=PF.households.filter(h=>h.daycare&&h.daycare.left<=2);
-    const txt=sample?msgFor(sample).text:a.k==='daycare'?(dc[0]?`Hola ${first(dc[0])} 🐾 Al paquete de daycare de ${names(dc[0].pets.filter(id=>PETMAP[id].sp==='perro').slice(0,2))} le quedan ${dc[0].daycare.left} días. ¿Te lo renovamos? Puedes pagarlo con este link de Yappy.`:''):a.k==='estado'?'Hola Juan 🐾 Este es el estado de cuenta de Francesco y Thor por el baño de hoy. Total $42.80. Puedes pagarlo con este link de Yappy.':'Hola Juan 🐾 Te recordamos la cita de mañana a las 9:00 a.m. para Francesco y Thor. ¿La confirmas?';
+    const txt=sample?msgFor(sample).text:a.k==='daycare'?(dc[0]?`Hola ${first(dc[0])} 🐾 Al paquete de daycare de ${names(dc[0].pets.filter(id=>PETMAP[id].sp==='perro').slice(0,2))} le quedan ${dc[0].daycare.left} días. Te lo renovamos? Puedes pagarlo con este link de Yappy.`:''):a.k==='estado'?'Hola Juan 🐾 Este es el estado de cuenta de Francesco y Thor por el baño de hoy. Total $42.80. Puedes pagarlo con este link de Yappy.':'Hola Juan 🐾 Te recordamos la cita de mañana a las 9:00 a.m. para Francesco y Thor. La confirmas?';
     const val=list.reduce((x,o)=>x+(o.type==='dormido'?o.annual:o.value),0);
     return `<div class="card auto"><div class="auto-top"><span class="ic">${ic(TYPES[a.k]?TYPES[a.k].icon:a.k==='estado'?'receipt':a.k==='daycare'?'sun':'bell')}</span><div><h3>${a.title}</h3><p>${a.p}</p></div><button class="switch ${on?'on':''}" data-a="auto" data-k="${a.k}" aria-label="Activar ${a.title}"></button></div>
     <div class="auto-msg"><div class="bub in">${esc(txt)}<time>${a.when}</time></div></div>
@@ -524,7 +528,7 @@ function vAutos(){
 /* ---------- Agenda ---------- */
 let agTab='Peluquería';
 function vAgenda(){
-  const radarAppts=st.appts.slice().sort((a,b)=>a.t-b.t);
+  const radarAppts=allAppts().sort((a,b)=>a.t-b.t);
   return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Agenda</h1><p>Peluquería, clínica, hotel y daycare en un solo lugar. Lo que agenda el radar por WhatsApp entra aquí sin que nadie lo copie.</p></div><div class="head-actions"><button class="btn primary" data-a="new-appt">${ic('plus')}Nueva cita</button></div></div>
   <div class="tabs" style="margin-bottom:16px">${['Peluquería','Clínica','Hotel y daycare'].map(t=>`<button class="tab ${agTab===t?'on':''}" data-a="agtab" data-t="${t}">${t}</button>`).join('')}</div>
   ${agTab==='Peluquería'?agGroom():agTab==='Clínica'?agClinic():agHotel()}
@@ -549,7 +553,7 @@ function agHotel(){
 }
 
 /* ---------- Caja ---------- */
-let pos={hh:null,pets:[],lines:[],pay:'Yappy',deliv:false,zone:''},posCat='Todo',posQ='';
+let pos={hh:null,pets:[],lines:[],pay:'Yappy',deliv:false,zone:'',fiscal:'cf'},posCat='Todo',posQ='';
 const POSCATS=['Todo','Alimento','Peluquería','Clínica','Hotel y daycare','Antiparasitario','Farmacia','Accesorios'];
 function catMatch(x){if(posCat==='Todo')return true;if(posCat==='Alimento')return /Alimento|Snacks/.test(x.cat);if(posCat==='Hotel y daycare')return x.cat==='Hotel'||x.cat==='Daycare';if(posCat==='Accesorios')return /Accesorios|Higiene/.test(x.cat);return x.cat===posCat}
 function posTiles(){
@@ -581,6 +585,7 @@ function vCaja(){
   <div class="toggle-row"><span>Delivery</span><button class="switch ${pos.deliv?'on':''}" data-a="pos-deliv" aria-label="Delivery"></button></div>
   ${pos.deliv?`<div class="field"><select id="pos-zone" class="select"><option value="">Zona de entrega</option>${PF.ZONES.map(z=>`<option ${pos.zone===z?'selected':''}>${z}</option>`).join('')}</select><small class="muted" style="font-size:12px">${c.freeDel?'Delivery gratis, pasa de 20 dólares y la zona está en la lista.':'Gratis desde 20 dólares en San Francisco, Costa del Este, Obarrio, Punta Pacífica, Paitilla, Marbella, Coco del Mar, Carrasquilla, El Carmen y Avenida Balboa.'}</small></div>`:''}
   <div class="tot"><div><span class="muted">Subtotal</span><span>${money(c.sub)}</span></div><div><span class="muted">ITBMS 7%</span><span>${money(c.tax)}</span></div>${pos.deliv?`<div><span class="muted">Delivery</span><span>${c.freeDel?'Gratis':'Según zona'}</span></div>`:''}<div class="big"><span>Total</span><span>${money(c.total)}</span></div></div>
+  <div class="field"><label>Factura electrónica a nombre de</label><div class="seg" style="grid-template-columns:1fr 1fr"><button class="${pos.fiscal==='cf'?'on':''}" data-a="pos-fiscal" data-f="cf">Consumidor final</button><button class="${pos.fiscal==='nom'?'on':''}" data-a="pos-fiscal" data-f="nom" ${hh?'':'disabled'}>${hh?esc(first(hh))+' con cédula':'La familia'}</button></div></div>
   <div class="seg">${['Yappy','Tarjeta','Efectivo','ACH','A cuenta'].map(p=>`<button class="${pos.pay===p?'on':''}" data-a="pos-pay" data-p="${p}" ${p==='A cuenta'&&!hh?'disabled':''}>${p}</button>`).join('')}</div>
   <button class="btn pink" style="height:48px;font-size:15px" data-a="pos-charge" ${c.lines.length?'':'disabled'}>${ic('check')}${pos.pay==='A cuenta'?'Cargar a la cuenta':'Cobrar '+money(c.total)}</button></aside></div>`;
 }
@@ -597,14 +602,14 @@ function posCharge(){
   const lines=c.lines.map(l=>({id:l.id,name:l.it.name,q:l.q,price:l.it.price,tax:l.it.tax,pets:l.pets||[]}));
   if(c.gift)lines.push({id:'s0',name:'Snack de regalo',q:1,price:0,tax:.07,pets:[]});
   const area=c.lines.some(l=>l.it.area==='Peluquería')?'Peluquería':c.lines.some(l=>l.it.area==='Clínica')?'Clínica':c.lines.some(l=>l.it.area==='Hotel')?'Hotel':c.lines.some(l=>l.it.area==='Daycare')?'Daycare':'Tienda';
-  const sale=mkSale(hhId,lines,{area,channel:'Tienda',pay:pos.pay});
+  const sale=mkSale(hhId,lines,{area,channel:'Tienda',pay:pos.pay});sale.fiscal=pos.fiscal==='nom'&&pos.hh?'nom':'cf';
   if(pos.hh){st.newSales.push(sale)}
   applySale(sale,true);
   if(pos.deliv&&pos.hh){const ord={id:'PD-'+(3300+st.orders.length),sale:sale.id,hh:pos.hh,status:'Pagado',channel:'Tienda',total:sale.total,items:sale.lines,zone:pos.zone||HHMAP[pos.hh].zone,time:nowLabel(),fresh:true};st.orders.push(ord);PF.orders.unshift(ord)}
   save();bump();
   const hh=HHMAP[hhId];
-  pos={hh:null,pets:[],lines:[],pay:'Yappy',deliv:false,zone:''};
-  rerender();showReceipt(sale,hh);
+  pos={hh:null,pets:[],lines:[],pay:'Yappy',deliv:false,zone:'',fiscal:'cf'};
+  rerender();const row=invoices().find(x=>x.id===sale.id);if(row)showInvoice(row,true);else showReceipt(sale,hh);
 }
 function showReceipt(s,hh){
   openOverlay(`<div class="modal" style="max-width:720px"><button class="x-btn" data-a="close">${ic('close')}</button><div class="doc-bar"><div><strong>${s.pay==='A cuenta'?'Cargo registrado':'Venta cobrada'} · ${s.id}</strong><small>${hh.real||pos?'Se registró en la ficha de la familia y el radar ya lo tomó en cuenta':''}</small></div><div style="display:flex;gap:8px"><button class="btn ghost sm" data-a="print">${ic('print')}Imprimir</button>${hh.pets.length?`<button class="btn wa sm" data-a="toast" data-m="Recibo enviado por WhatsApp a ${esc(first(hh))}">${ic('send')}Enviar por WhatsApp</button>`:''}</div></div>
@@ -614,13 +619,93 @@ function showReceipt(s,hh){
 }
 function docTop(title,sub){return `<div class="doc-top"><div class="doc-brand"><img src="./assets/pf-mark.png" alt=""><div><b>PetsFashion</b><small>Local 8B, Calle 75 Este, San Francisco · 6967-1859</small></div></div><div class="doc-title"><h2>${title}</h2><small>${sub}</small></div></div>`}
 
+
+/* ---------- Facturación electrónica DGI ---------- */
+const FISCAL={name:'Pets Fashion',ruc:'RUC 0000000-0-000000 DV 00',punto:'002'};
+const mf=n=>(n<0?'-':'')+'$'+Math.abs(r2(n)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const hsh=x=>{let h=2166136261;for(const ch of String(x)){h^=ch.charCodeAt(0);h=Math.imul(h,16777619)>>>0}return h};
+const ymd=t=>{const d=new Date(t);return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')};
+function invoices(){
+  if(cache.inv)return cache.inv;
+  const list=PF.sales.slice().sort((a,b)=>a.t-b.t||(a.id>b.id?1:-1));
+  const out=list.map((s,i)=>{
+    const hh=HHMAP[s.hh]||{name:'Cliente de mostrador',pets:[]};
+    const nom=s.fiscal?s.fiscal==='nom':(hh.pets&&hh.pets.length&&hsh(s.id)%7===0);
+    const ex=s.lines.filter(l=>!l.tax).reduce((a,l)=>a+l.price*l.q,0),gr=s.lines.filter(l=>l.tax).reduce((a,l)=>a+l.price*l.q,0);
+    const num=String(18240+i).padStart(10,'0'),sec=String(hsh(s.id+'q')).padStart(10,'0').slice(0,9);
+    return {id:s.id,s,num,t:s.t,type:'Factura',client:nom?hh.name:'Consumidor final',nom,hh,ex,gr,itbms:s.tax,total:s.total,pay:s.pay==='A cuenta'?'A crédito':s.pay,
+      cufe:'FE0120000000000000-0-000000-00'+FISCAL.punto+ymd(s.t)+num+FISCAL.punto+sec,prot:ymd(s.t)+String(hsh(s.id+'p')).padStart(10,'0').slice(0,10)};
+  });
+  // notas de crédito de ejemplo en el mes
+  const d=new Date(TODAY),m0=new Date(d.getFullYear(),d.getMonth(),1).getTime();
+  const cand=out.filter(r=>r.t>=m0&&r.t<TODAY-2*DAY&&r.s.lines.some(l=>CAT[l.id]&&!CAT[l.id].gift&&l.price>0&&/Accesorios|Higiene|Snacks/.test(CAT[l.id].cat)));
+  const reasons=['Cambio por otra talla','Producto devuelto sin abrir'];
+  cand.filter((r,i)=>i%9===3).slice(0,2).forEach((r,k)=>{
+    const l=r.s.lines.find(l=>CAT[l.id]&&!CAT[l.id].gift&&l.price>0&&/Accesorios|Higiene|Snacks/.test(CAT[l.id].cat));
+    const gr=l.price*l.q,it=gr*l.tax;
+    out.push({id:'NC-'+r.id,s:{...r.s,lines:[l],t:r.t+DAY},num:'NC'+String(41+k).padStart(8,'0'),t:r.t+DAY,type:'Nota de crédito',client:r.client,nom:r.nom,hh:r.hh,ex:0,gr:-gr,itbms:-r2(it),total:-r2(gr+it),pay:'Devolución',ref:r.num,reason:reasons[k],cufe:r.cufe.replace('FE01','FE04'),prot:r.prot.slice(0,8)+'77'+r.prot.slice(10)});
+  });
+  out.sort((a,b)=>b.t-a.t||(b.num>a.num?1:-1));
+  cache.inv=out;return out;
+}
+function qrSVG(seed){
+  let x=hsh(seed)||7;const rnd=()=>{x^=x<<13;x>>>=0;x^=x>>17;x^=x<<5;x>>>=0;return x/4294967296};
+  const N=25;let r='';
+  const inF=(i,j)=>(i<8&&j<8)||(i<8&&j>N-9)||(i>N-9&&j<8);
+  for(let i=0;i<N;i++)for(let j=0;j<N;j++){if(!inF(i,j)&&rnd()<.46)r+=`<rect x="${j}" y="${i}" width="1" height="1"/>`}
+  const fp=(y,x0)=>`<rect x="${x0}" y="${y}" width="7" height="7"/><rect x="${x0+1}" y="${y+1}" width="5" height="5" fill="#fff"/><rect x="${x0+2}" y="${y+2}" width="3" height="3"/>`;
+  return `<svg class="qr" viewBox="-1 -1 ${N+2} ${N+2}" shape-rendering="crispEdges" aria-label="Código QR de la factura"><rect x="-1" y="-1" width="${N+2}" height="${N+2}" fill="#fff"/><g fill="#18161b">${r}${fp(0,0)}${fp(0,N-7)}${fp(N-7,0)}</g></svg>`;
+}
+let facF='Todas',facLimit=30;
+function monthRows(){const d=new Date(TODAY),m0=new Date(d.getFullYear(),d.getMonth(),1).getTime();return invoices().filter(r=>r.t>=m0)}
+function vFactura(){
+  const rows=monthRows();const fac=rows.filter(r=>r.type==='Factura'),nc=rows.filter(r=>r.type!=='Factura');
+  const sum=(a,k)=>a.reduce((x,r)=>x+r[k],0);
+  const list=rows.filter(r=>facF==='Todas'||(facF==='Facturas'?r.type==='Factura':facF==='Notas de crédito'?r.type!=='Factura':r.nom));
+  const mes=MESL[new Date(TODAY).getMonth()];
+  return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Facturación electrónica</h1><p>Cada cobro de la caja sale como factura electrónica autorizada por la DGI, con su CUFE y su código QR, y le llega al cliente por WhatsApp o correo. El ITBMS queda separado por tasa para el contador.</p></div><div class="head-actions"><button class="btn ghost" data-a="itbms">${ic('chart')}Resumen para el contador</button><a class="btn primary" href="#caja">${ic('cash')}Nueva venta</a></div></div>
+  <div class="card meta-note">${ic('shield')}<div><b>Cómo funciona.</b> La factura se firma con el certificado electrónico de Pets Fashion y viaja a la DGI por medio de un proveedor autorizado, un PAC. La DGI la valida en segundos y le asigna su CUFE, el código único con el que cualquiera la puede consultar. Si la DGI la rechaza, el sistema dice por qué antes de volver a enviarla.</div></div>
+  <section class="kpis k5">${kpi('receipt','Facturas de '+mes,fac.length.toLocaleString('en-US'),'todas autorizadas por la DGI')}${kpi('cash','Total facturado',mf(sum(fac,'total')),'incluye ITBMS')}${kpi('chart','ITBMS 7% cobrado',mf(sum(rows,'itbms')),'para la declaración del mes')}${kpi('bag','Ventas exentas',mf(sum(fac,'ex')),'alimento, antiparasitarios y farmacia')}${kpi('reset','Notas de crédito',String(nc.length),mf(-sum(nc,'total'))+' devueltos')}</section>
+  <section class="card"><div class="list-head"><div class="tabs">${['Todas','Facturas','Notas de crédito','A nombre de cliente'].map(k=>`<button class="tab ${facF===k?'on':''}" data-a="fac-f" data-f="${k}">${k}</button>`).join('')}</div><span class="muted" style="font-size:12.5px">${cap(mes)} · punto de facturación ${FISCAL.punto}</span></div>
+  <div class="table-wrap"><table class="t"><thead><tr><th>Número</th><th>Fecha</th><th>Cliente</th><th>Tipo</th><th class="r">Exento</th><th class="r">Gravado 7%</th><th class="r">ITBMS</th><th class="r">Total</th><th>Estado DGI</th></tr></thead><tbody>${list.slice(0,facLimit).map(r=>`<tr class="click" data-a="inv" data-id="${r.id}"><td><b>${r.num}</b></td><td>${fdy(r.t)}</td><td>${esc(r.client)}${r.nom?'':''}</td><td>${r.type==='Factura'?'Factura':'<span class="chip warn">Nota de crédito</span>'}</td><td class="r">${r.ex?mf(r.ex):'<span class="muted">·</span>'}</td><td class="r">${r.gr?mf(r.gr):'<span class="muted">·</span>'}</td><td class="r">${r.itbms?mf(r.itbms):'<span class="muted">·</span>'}</td><td class="r num">${mf(r.total)}</td><td><span class="chip ok">${ic('check')}Autorizada</span></td></tr>`).join('')}${list.length>facLimit?`<tr><td colspan="9"><div class="more-row"><button class="btn ghost sm" data-a="fac-more">Ver más, quedan ${list.length-facLimit}</button></div></td></tr>`:''}</tbody></table></div></section>`;
+}
+function showInvoice(r,fresh){
+  const s=r.s,nc=r.type!=='Factura';
+  openOverlay(`<div class="modal" style="max-width:860px"><button class="x-btn" data-a="close" aria-label="Cerrar">${ic('close')}</button><div class="doc-bar"><div><strong>${fresh?'Venta cobrada · factura autorizada por la DGI':nc?'Nota de crédito '+r.num:'Factura electrónica '+r.num}</strong><small>${fresh?'La familia la recibe por WhatsApp y el radar ya tomó en cuenta la venta':'Autorizada por la DGI · se puede consultar con el CUFE'}</small></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" data-a="print">${ic('print')}Imprimir</button><button class="btn wa sm" data-a="toast" data-m="Factura enviada por WhatsApp con su PDF">${ic('send')}Enviar por WhatsApp</button>${nc?'':`<button class="btn ghost sm" data-a="nc" data-id="${r.id}">${ic('reset')}Nota de crédito</button>`}</div></div>
+  <div class="doc">${docTop(nc?'Nota de crédito':'Factura electrónica','N.º '+r.num+' · punto '+FISCAL.punto)}
+  <div class="doc-meta"><div><small>Emisor</small><b>${FISCAL.name}</b><br><span class="muted" style="font-size:12px">${FISCAL.ruc}</span></div><div><small>Cliente</small><b>${esc(r.client)}</b>${r.nom?'<br><span class="muted" style="font-size:12px">Cédula registrada en su ficha</span>':''}</div><div><small>Fecha de emisión</small><b>${fdl(r.t)} de ${new Date(r.t).getFullYear()}</b><br><span class="muted" style="font-size:12px">${nc?'Referencia factura '+r.ref:'Pago '+esc(r.pay)}</span></div></div>
+  ${nc?`<p class="muted" style="margin:0 0 12px;font-size:13px">Motivo. ${esc(r.reason)}.</p>`:''}
+  <table><thead><tr><th>Descripción</th><th>Mascota</th><th class="r">Cant.</th><th class="r">Precio</th><th class="r">ITBMS</th><th class="r">Total</th></tr></thead><tbody>${s.lines.map(l=>{const sg=nc?-1:1;const b=l.price*l.q;return `<tr><td>${esc(l.name)}</td><td>${esc(l.pets&&l.pets.length?names(l.pets):'')}</td><td class="r">${l.q}</td><td class="r">${mf(l.price)}</td><td class="r">${l.price===0?'Regalo':l.tax?'7%':'Exento'}</td><td class="r">${mf(sg*b*(1+l.tax))}</td></tr>`}).join('')}</tbody></table>
+  <div class="doc-total"><div><span>Exento</span><span>${mf(r.ex)}</span></div><div><span>Gravado 7%</span><span>${mf(r.gr)}</span></div><div><span>ITBMS 7%</span><span>${mf(r.itbms)}</span></div><div class="big"><span>Total</span><span>${mf(r.total)}</span></div></div>
+  <div class="fiscal"><div>${qrSVG(r.cufe)}</div><div><small>CUFE</small><code>${r.cufe}</code><small>Protocolo de autorización</small><code>${r.prot}</code><p>Consulte este documento en el sitio de la DGI con el CUFE o escaneando el código QR.</p></div></div>
+  <p class="doc-note">Documento de ejemplo generado por el prototipo, sin valor fiscal. En el sistema real sale con el RUC de Pets Fashion y el código lo genera la DGI.</p></div></div>`,'center');
+}
+function showITBMS(){
+  const rows=monthRows();const mes=MESL[new Date(TODAY).getMonth()],y=new Date(TODAY).getFullYear();
+  const sum=(a,k)=>a.reduce((x,r)=>x+r[k],0);const fac=rows.filter(r=>r.type==='Factura'),nc=rows.filter(r=>r.type!=='Factura');
+  const byA={};fac.forEach(r=>{const a=r.s.area;byA[a]=byA[a]||{ex:0,gr:0,it:0,n:0};byA[a].ex+=r.ex;byA[a].gr+=r.gr;byA[a].it+=r.itbms;byA[a].n++});
+  openOverlay(`<div class="modal" style="max-width:820px"><button class="x-btn" data-a="close">${ic('close')}</button><div class="doc-bar"><div><strong>Resumen de ITBMS de ${mes}</strong><small>Listo para la declaración mensual, sin armar nada a mano</small></div><div style="display:flex;gap:8px"><button class="btn ghost sm" data-a="print">${ic('print')}Imprimir</button><button class="btn primary sm" data-a="itbms-csv">${ic('download')}Descargar Excel</button></div></div>
+  <div class="doc">${docTop('Resumen de ITBMS',cap(mes)+' de '+y+' · al '+fdl(TODAY))}
+  <div class="doc-meta"><div><small>Facturas</small><b>${fac.length}</b></div><div><small>Notas de crédito</small><b>${nc.length}</b></div><div><small>ITBMS neto del mes</small><b>${mf(sum(rows,'itbms'))}</b></div></div>
+  <table><thead><tr><th>Área</th><th class="r">Documentos</th><th class="r">Exento</th><th class="r">Gravado 7%</th><th class="r">ITBMS</th></tr></thead><tbody>${Object.entries(byA).sort((a,b)=>b[1].gr+b[1].ex-a[1].gr-a[1].ex).map(([a,v])=>`<tr><td>${a}</td><td class="r">${v.n}</td><td class="r">${mf(v.ex)}</td><td class="r">${mf(v.gr)}</td><td class="r">${mf(v.it)}</td></tr>`).join('')}<tr><td>Notas de crédito</td><td class="r">${nc.length}</td><td class="r">${mf(sum(nc,'ex'))}</td><td class="r">${mf(sum(nc,'gr'))}</td><td class="r">${mf(sum(nc,'itbms'))}</td></tr></tbody></table>
+  <div class="doc-total"><div><span>Ventas exentas</span><span>${mf(sum(rows,'ex'))}</span></div><div><span>Ventas gravadas 7%</span><span>${mf(sum(rows,'gr'))}</span></div><div class="big"><span>ITBMS a declarar</span><span>${mf(sum(rows,'itbms'))}</span></div></div>
+  <p class="doc-note">Cifras de ejemplo. En el sistema real salen de las facturas autorizadas por la DGI y el contador las descarga en Excel el primer día del mes.</p></div></div>`,'center');
+}
+function downloadMonthCSV(){
+  const rows=[['Número','Fecha','Tipo','Cliente','Exento','Gravado 7%','ITBMS','Total','CUFE']];
+  monthRows().slice().reverse().forEach(r=>rows.push([r.num,new Date(r.t).toISOString().slice(0,10),r.type,r.client,r2(r.ex),r2(r.gr),r2(r.itbms),r2(r.total),r.cufe]));
+  const csv='﻿'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download='pets-fashion-facturas-del-mes.csv';document.body.appendChild(a);a.click();a.remove();
+  toast('Facturas del mes exportadas, se abren en Excel');
+}
+
 /* ---------- Pedidos ---------- */
 const OST=['Nuevo','Pagado','En ruta','Entregado'];
 function vPedidos(){
   const o=PF.orders;
   return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Pedidos y delivery</h1><p>Lo que entra por WhatsApp, PedidosYa o la caja con entrega. Cada pedido sabe si lleva snack de regalo y si el delivery es gratis.</p></div></div>
   <div class="card meta-note">${ic('truck')}<div><b>Reglas cargadas de la tienda.</b> Delivery gratis por compras mayores a 20 dólares en San Francisco, Costa del Este, Obarrio, Punta Pacífica, Paitilla, Marbella, Coco del Mar, Carrasquilla, El Carmen y Avenida Balboa. Snack de regalo por alimento de 1.5 kg o más, excepto en PedidosYa.</div></div>
-  <div class="kanban">${OST.map(s=>{const list=o.filter(x=>x.status===s);return `<div class="kcol"><div class="kcol-head">${s}<span>${list.length}</span></div>${list.map(x=>{const hh=HHMAP[x.hh];const gift=x.items.some(l=>l.id==='s0');return `<div class="order ${x.fresh?'fresh':''}"><div class="row"><strong>${x.id}</strong><small>${x.time}</small></div><div class="row" style="justify-content:flex-start;gap:8px">${hh.pets.length?pstack(hh.pets):''}<span><b>${esc(hh.name)}</b><br><small>${esc(x.zone)}</small></span></div><small>${esc(x.items.filter(l=>l.id!=='s0').map(l=>l.q+' × '+l.name).join(', '))}</small><div class="row"><span style="display:flex;gap:5px;flex-wrap:wrap"><span class="chip ${x.channel==='WhatsApp'?'ok':x.channel==='PedidosYa'?'warn':''}">${x.channel}</span>${gift?'<span class="chip pink">'+ic('gift')+'Snack</span>':''}${x.fresh?'<span class="chip dark">Del radar</span>':''}</span><b>${money(x.total)}</b></div>${s!=='Entregado'?`<button class="btn ghost xs" data-a="order-next" data-id="${x.id}">${s==='Nuevo'?'Marcar pagado':s==='Pagado'?'Salió a ruta':'Marcar entregado'}${ic('arrow')}</button>`:''}</div>`}).join('')||'<div class="empty">Sin pedidos</div>'}</div>`}).join('')}</div>`;
+  <div class="kanban">${OST.map(s=>{const list=o.filter(x=>x.status===s);return `<div class="kcol"><div class="kcol-head">${s}<span>${list.length}</span></div>${list.map(x=>{const hh=HHMAP[x.hh];const gift=x.items.some(l=>l.id==='s0');return `<div class="order ${x.fresh?'fresh':''}"><div class="row"><strong>${x.id}</strong><small>${x.time}</small></div><div class="row" style="justify-content:flex-start;gap:8px">${hh.pets.length?pstack(hh.pets):''}<span><b>${esc(hh.name)}</b><br><small>${esc(x.zone)}</small></span></div><small>${esc(x.items.filter(l=>l.id!=='s0').map(l=>l.q+' × '+l.name).join(', '))}</small><div class="row"><span style="display:flex;gap:5px;flex-wrap:wrap"><span class="chip ${x.channel==='WhatsApp'?'ok':x.channel==='PedidosYa'?'warn':''}">${x.channel}</span>${gift?'<span class="chip pink">'+ic('gift')+'Snack</span>':''}${x.fresh||x.radar?'<span class="chip dark">Del radar</span>':''}</span><b>${money(x.total)}</b></div>${s!=='Entregado'?`<button class="btn ghost xs" data-a="order-next" data-id="${x.id}">${s==='Nuevo'?'Marcar pagado':s==='Pagado'?'Salió a ruta':'Marcar entregado'}${ic('arrow')}</button>`:''}</div>`}).join('')||'<div class="empty">Sin pedidos</div>'}</div>`}).join('')}</div>`;
 }
 
 /* ---------- Inventario ---------- */
@@ -657,7 +742,7 @@ function vInventario(){
   const w=insights().find(x=>x.icon==='box');
   return `<div class="page-head"><div><span class="eyebrow">Operación</span><h1>Inventario</h1><p>La existencia de cada producto cruzada con lo que el radar sabe que las familias van a necesitar. Se pide al proveedor con datos, no a ojo.</p></div><div class="head-actions"><button class="btn ghost" data-a="new-product">${ic('plus')}Agregar producto</button><button class="btn primary" data-a="po">${ic('receipt')}Generar pedido al proveedor</button></div></div>
   ${w?`<div class="card callout"><span class="ic">${ic('radar')}</span><div><strong>${w.t}</strong><p>${w.p}</p></div><button class="btn pink sm" data-a="po">Pedir ahora</button></div>`:''}
-  <section class="kpis" style="grid-template-columns:repeat(4,minmax(0,1fr))">${kpi('alert','Pedir ya',pedir.length+' productos','bajo el mínimo o por debajo de la demanda')}${kpi('radar','Demanda anticipada',tot+' unidades','alimento y antipulgas en 14 días')}${kpi('box','Dinero detenido',money(stale,1),'en productos sin ventas en 90 días')}${kpi('receipt','Pedido sugerido',money(po,1),'a precio de costo')}</section>
+  <section class="kpis k4">${kpi('alert','Pedir ya',pedir.length+' productos','bajo el mínimo o por debajo de la demanda')}${kpi('radar','Demanda anticipada',tot+' unidades','alimento y antipulgas en 14 días')}${kpi('box','Dinero detenido',money(stale,1),'en productos sin ventas en 90 días')}${kpi('receipt','Pedido sugerido',money(po,1),'a precio de costo')}</section>
   <section class="card"><div class="list-head"><div class="tabs">${['Todo','Alimento','Antiparasitario','Farmacia','Accesorios'].map(k=>`<button class="tab ${invCat===k?'on':''}" data-a="inv-cat" data-c="${k}">${k}</button>`).join('')}</div><div class="search-field" style="min-width:240px">${ic('search')}<input id="inv-search" class="input" placeholder="Buscar producto o marca" value="${esc(invQ)}"></div></div>
   <div class="table-wrap"><table class="t"><thead><tr><th>Producto</th><th class="r">Existencia</th><th class="r">Venta 30 d</th><th class="r">Radar 14 d</th><th>Cobertura</th><th class="r">Margen</th><th>Estado</th><th class="r">Pedir</th></tr></thead><tbody id="inv-body">${invRows()}</tbody></table></div></section>`;
 }
@@ -703,7 +788,7 @@ function vFamilias(){
   const br={};pets.forEach(p=>{if(!p.real&&p.sp==='perro'&&p.breed!=='Mestizo')br[p.breed]=(br[p.breed]||0)+1});const topB=Object.entries(br).sort((a,b)=>b[1]-a[1])[0];
   const counts={};['Fiel','En riesgo','Dormida','Nueva'].forEach(k=>counts[k]=0);(cache.fam||famList()).forEach(r=>counts[r.s]++);
   return `<div class="page-head"><div><span class="eyebrow">Clientes</span><h1>Familias y mascotas</h1><p>Cada familia con sus mascotas, lo que come cada una, cuándo se bañó, sus vacunas y todo lo que ha comprado. El estado de cuenta sale de aquí por mascota.</p></div><div class="head-actions"><button class="btn primary" data-a="toast" data-m="En el sistema final aquí se registra una familia nueva con sus mascotas">${ic('plus')}Nueva familia</button></div></div>
-  <section class="kpis" style="grid-template-columns:repeat(4,minmax(0,1fr))">${kpi('users','Familias activas',all.length.toLocaleString('en-US'),'con al menos una compra')}${kpi('paw','Mascotas',pets.length.toLocaleString('en-US'),Math.round(dogs/pets.length*100)+'% perros, '+Math.round((1-dogs/pets.length)*100)+'% gatos')}${kpi('heart','Raza de perro más atendida',topB[0],topB[1]+' perros registrados')}${kpi('receipt','Por cobrar',money(PF.households.reduce((a,h)=>a+(h.balance||0),0),1),PF.households.filter(h=>h.balance>0).length+' familias con saldo')}</section>
+  <section class="kpis k4">${kpi('users','Familias activas',all.length.toLocaleString('en-US'),'con al menos una compra')}${kpi('paw','Mascotas',pets.length.toLocaleString('en-US'),Math.round(dogs/pets.length*100)+'% perros, '+Math.round((1-dogs/pets.length)*100)+'% gatos')}${kpi('heart','Raza de perro más atendida',topB[0],topB[1]+' perros registrados')}${kpi('receipt','Por cobrar',money(PF.households.reduce((a,h)=>a+(h.balance||0),0),1),PF.households.filter(h=>h.balance>0).length+' familias con saldo')}</section>
   <section class="card"><div class="list-head"><div class="tabs">${['Todas','Fiel','En riesgo','Dormida','Nueva','Con saldo'].map(k=>`<button class="tab ${famF===k?'on':''}" data-a="fam-f" data-f="${k}">${k}${counts[k]!=null?' <b>'+counts[k]+'</b>':''}</button>`).join('')}</div><div class="search-field" style="min-width:260px">${ic('search')}<input id="fam-search" class="input" placeholder="Familia, mascota, raza o zona" value="${esc(famQ)}"></div></div>
   <div class="table-wrap"><table class="t"><thead><tr><th>Familia</th><th>Razas</th><th>Zona</th><th>Última visita</th><th class="r">Gasto 12 meses</th><th>Estado</th><th class="r">Saldo</th></tr></thead><tbody id="fam-body">${famRows()}</tbody></table></div></section>`;
 }
@@ -714,7 +799,7 @@ function openFamily(id){
   const ops=radar().filter(o=>o.hh.id===id);
   const areaIc={'Tienda':'bag','Peluquería':'scissors','Clínica':'steth','Hotel':'home','Daycare':'sun'};
   openOverlay(`<div class="drawer"><button class="x-btn" data-a="close">${ic('close')}</button>
-  <div class="fam-head">${pstack(hh.pets,'lg')}<div><h2>${esc(hh.name)}</h2><p>${esc(hh.phone)} · ${esc(hh.zone)} · Cliente desde ${MESL[new Date(hh.since).getMonth()]} ${new Date(hh.since).getFullYear()}</p><div class="opp-tags">${statusChip(statusOf(hh))}${hh.bestHour?`<span class="chip line">${ic('clock')}Responde mejor a las ${hh.bestHour}</span>`:''}${hh.real?'<span class="chip dark">Compras reales del chat</span>':''}</div></div></div>
+  <div class="fam-head">${pstack(hh.pets,'lg')}<div><h2>${esc(hh.name)}</h2><p>${esc(hh.phone)} · ${esc(hh.zone)} · Cliente desde ${MESL[new Date(hh.since).getMonth()]} ${new Date(hh.since).getFullYear()}</p><div class="opp-tags">${statusChip(statusOf(hh))}${hh.bestHour?`<span class="chip outline">${ic('clock')}Responde mejor a las ${hh.bestHour}</span>`:''}${hh.real?'<span class="chip dark">Compras reales del chat</span>':''}</div></div></div>
   <div class="mini-kpis"><div><small>Gasto 12 meses</small><b>${money(a,1)}</b></div><div><small>Visitas</small><b>${visits}</b></div><div><small>Ticket promedio</small><b>${money(visits?a/visits:0,1)}</b></div><div><small>Saldo</small><b style="color:${hh.balance>0?'var(--warn)':'inherit'}">${money(hh.balance||0)}</b></div></div>
   <div class="drawer-actions"><button class="btn primary sm" data-a="statement" data-id="${id}">${ic('receipt')}Estado de cuenta</button><button class="btn ghost sm" data-a="sell" data-id="${id}">${ic('cash')}Nueva venta</button>${ops[0]?`<button class="btn wa sm" data-a="sim" data-id="${ops[0].id}">${ic('send')}Escribirle</button>`:''}</div>
   ${ops.length?`<div class="section-title">Lo que le toca según el radar</div><div class="card">${ops.map(o=>`<div class="opp" style="grid-template-columns:minmax(0,1fr) auto"><div class="opp-main"><strong>${TYPES[o.type].label}</strong><p style="margin-bottom:0">${esc(oppLine(o))}</p></div><button class="btn ghost sm" data-a="sim" data-id="${o.id}">${ic('phone')}Mensaje</button></div>`).join('')}</div>`:''}
@@ -726,7 +811,7 @@ function petCard(p){
   const g=PF.foodGroups.filter(g=>g.pets.includes(p.id)&&g.buys.length).sort((a,b)=>b.buys[b.buys.length-1]-a.buys[a.buys.length-1])[0];
   let food='<div class="fact">'+ic('bag')+'<div><small>Alimento</small><b>No lo compra aquí</b><em>Oportunidad de venta</em></div></div>';
   if(g){const cyc=cycleOf(g),last=g.buys[g.buys.length-1],left=dd(last+cyc*DAY),pct=Math.max(0,Math.min(1,left/cyc));food=`<div class="fact"><span class="bag ${pct<.15?'low':pct<.4?'mid':''}"><i style="height:${Math.max(4,pct*100)}%"></i></span><div><small>Alimento · ${g.grams} g al día${g.pets.length>1?' con '+names(g.pets.filter(x=>x!==p.id)):''}</small><b>${esc(CAT[g.product].name)}</b><em>${left<=0?'Se acabó '+(left===0?'hoy':rel(left)):'Le queda para '+left+' días'} · comprado el ${fd(last)}</em></div></div>`}
-  const ap=st.appts.filter(x=>x.pets.includes(p.id)).sort((x,y)=>x.t-y.t)[0];
+  const ap=allAppts().filter(x=>x.pets.includes(p.id)).sort((x,y)=>x.t-y.t)[0];
   const groom=ap&&ap.area==='Peluquería'?`<div class="fact">${ic('calendar')}<div><small>Peluquería · cita agendada por el radar</small><b>${esc(ap.label)}</b><em>${esc(ap.svc)} con ${esc(ap.who)}</em></div></div>`:p.groomEvery&&p.lastGroom?`<div class="fact">${ic('scissors')}<div><small>Peluquería · cada ${Math.max(1,Math.round(p.groomEvery/7))} semanas${p.groomer?' con '+p.groomer:''}</small><b>Último baño ${rel(dd(p.lastGroom))}</b><em>${dd(p.lastGroom)*-1>p.groomEvery?'Atrasado '+Math.round((dd(p.lastGroom)*-1-p.groomEvery)/7)+' semanas':'Al día'}</em></div></div>`:`<div class="fact">${ic('scissors')}<div><small>Peluquería</small><b>${p.sp==='gato'?'No aplica':'Sin baños registrados'}</b><em>${p.sp==='gato'?'':'Puede invitarse a la peluquería'}</em></div></div>`;
   const vax=p.vax.length?`<div class="fact">${ic('syringe')}<div><small>Vacunas</small><b>${p.vax.map(v=>v.name).join(' y ')}</b><em>${p.vax.map(v=>dd(v.due)<0?v.name+' vencida':v.name+' hasta '+fd(v.due)).join(' · ')}</em></div></div>`:`<div class="fact">${ic('syringe')}<div><small>Vacunas</small><b>Sin registro aquí</b><em>Se cargan en la primera consulta</em></div></div>`;
   const anti=p.anti&&p.anti.last?`<div class="fact">${ic('shield')}<div><small>Antipulgas</small><b>${esc(shortName(CAT[p.anti.product]))}</b><em>Próxima dosis ${rel(dd(p.anti.last+p.anti.every*DAY))}</em></div></div>`:`<div class="fact">${ic('shield')}<div><small>Antipulgas</small><b>Sin registro</b><em>Oportunidad de venta</em></div></div>`;
@@ -747,22 +832,35 @@ function showStatement(id){
 }
 
 /* ---------- Conversaciones ---------- */
-let convSel=null;
+let convSel=null,convF='Todas';
+const normMsg=m=>Array.isArray(m)?{d:m[0],t:m[1],time:m[2]}:m;
 function convList(){
-  const list=PF.conv.map(c=>({...c,h:HHMAP[c.hh]}));
-  Object.values(st.chats).forEach(ch=>{const h=HHMAP[ch.hh];list.unshift({id:'r-'+ch.hh,hh:ch.hh,h,area:ch.area,unread:0,time:ch.t,radar:ch,msgs:[['out',ch.msg,ch.t],...ch.log.map(l=>['in',l,ch.t])],ai:null,ctx:'Conversación iniciada por el radar. '+(ch.kind==='buy'?'Terminó en compra pagada por Yappy.':ch.kind==='book'?'Terminó en cita agendada.':ch.kind==='hotel'?'Terminó en reserva de hotel.':'El cliente respondió y quedó registrado.')})});
+  const list=PF.conv.map(c=>({...c,h:HHMAP[c.hh],msgs:c.msgs.map(normMsg)}));
+  Object.values(st.chats).forEach(ch=>{const h=HHMAP[ch.hh];if(!h)return;list.unshift({id:'r-'+ch.hh,hh:ch.hh,h,area:ch.area,unread:0,time:ch.t,radar:ch.type||'alimento',msgs:ch.msgs&&ch.msgs.length?ch.msgs:[{d:'out',tpl:true,t:ch.msg,time:ch.t},...ch.log.map(l=>({d:'in',t:l,time:ch.t}))],result:ch.kind==='buy'?'Terminó en compra pagada por Yappy.':ch.kind==='book'?'Terminó en cita agendada.':ch.kind==='hotel'?'Terminó en reserva de hotel.':'El cliente respondió y quedó registrado.',ctx:'Conversación que abrió el radar desde el simulador.'})});
   return list;
 }
+function convBub(m){
+  if(m.d==='sys')return `<div class="wa-sys">${esc(m.t)}</div>`;
+  const card=m.card?`<div class="tpl-card"><span class="bagimg"></span><div><b>${esc(m.card.name)}</b><small>${money(m.card.price)} · ${esc(m.card.brand)}</small></div></div>`:'';
+  const pay=m.pay?`<div class="pay-card"><div><i></i><div><b>Link de pago Yappy</b><small>Pets Fashion · ${money(m.pay)}</small></div></div></div>`:'';
+  const tag=m.tpl?`<span class="bub-tag">${ic('radar')}Plantilla del radar, aprobada por Meta</span>`:m.ai?`<span class="bub-tag ai">${ic('spark')}Respondió el asistente</span>`:'';
+  const btns=m.btns?`<div class="wa-btns used ${m.d==='out'?'right':''}">${m.btns.map((b,i)=>`<button tabindex="-1" class="${i===m.picked?'picked':''}">${i===m.picked?ic('check'):''}${esc(b)}</button>`).join('')}</div>`:'';
+  return `<div class="bub ${m.d}">${tag}${card}${pay}${esc(m.t).replace(/\n/g,'<br>')}<time>${esc(m.time||'')}</time></div>${btns}`;
+}
 function vConv(){
-  const list=convList();if(!convSel||!list.find(c=>c.id===convSel))convSel=list[0]&&list[0].id;
+  const all=convList();
+  const list=all.filter(c=>convF==='Todas'||(convF==='Del radar'?c.radar:(c.unread>0||(c.ai&&!st.dismissed[c.id]))));
+  if(!convSel||!list.find(c=>c.id===convSel))convSel=list[0]&&list[0].id;
   const c=list.find(x=>x.id===convSel);const h=c&&c.h;
   const areaCls={Tienda:'',Peluquería:'pink',Clínica:'bad',Hotel:'dark',Daycare:'warn'};
-  return `<div class="page-head"><div><span class="eyebrow">Clientes</span><h1>Conversaciones</h1><p>Un solo número de WhatsApp para tienda, peluquería, hotel, daycare y clínica. El sistema reparte cada mensaje al área que corresponde y sugiere la respuesta con los datos de la familia.</p></div></div>
-  <section class="card inbox"><div class="inbox-list">${list.map(x=>`<button class="ib-item ${x.id===convSel?'on':''}" data-a="conv" data-id="${x.id}">${x.h.pets.length?pstack(x.h.pets.slice(0,1),'md'):''}<div><strong><span>${esc(x.h.name)}</span><time>${esc(x.time)}</time></strong><p>${esc(x.msgs[x.msgs.length-1][1])}</p><span style="display:flex;gap:6px;align-items:center"><span class="chip ${areaCls[x.area]||''}">${x.area}</span>${x.urgent?'<span class="chip bad">Urgente</span>':''}${x.radar?'<span class="chip pink">'+ic('radar')+'Radar</span>':''}${x.unread?`<span class="unread">${x.unread}</span>`:''}</span></div></button>`).join('')}</div>
-  ${c?`<div class="chat"><div class="chat-head"><div><strong>${esc(h.name)}</strong><small>${esc(names(h.pets))} · ${c.area}</small></div><button class="btn ghost sm" data-a="fam" data-id="${h.id}">${ic('user')}Ficha</button></div><div class="chat-body">${c.msgs.map(m=>`<div class="bub ${m[0]}">${esc(m[1])}<time>${esc(m[2])}</time></div>`).join('')}</div>
+  const last=x=>{const m=x.msgs.filter(m=>m.d!=='sys').pop()||x.msgs[x.msgs.length-1];return m.t};
+  return `<div class="page-head"><div><span class="eyebrow">Clientes</span><h1>Conversaciones</h1><p>Un solo número de WhatsApp para tienda, peluquería, hotel, daycare y clínica. El radar abre la conversación con una plantilla, el cliente responde con un toque y el asistente contesta las dudas con los datos de su mascota.</p></div></div>
+  <div class="tabs" style="margin-bottom:14px">${['Todas','Del radar','Por responder'].map(k=>`<button class="tab ${convF===k?'on':''}" data-a="conv-f" data-f="${k}">${k} <b>${all.filter(x=>k==='Todas'||(k==='Del radar'?x.radar:(x.unread>0||(x.ai&&!st.dismissed[x.id])))).length}</b></button>`).join('')}</div>
+  <section class="card inbox"><div class="inbox-list">${list.map(x=>`<button class="ib-item ${x.id===convSel?'on':''}" data-a="conv" data-id="${x.id}">${x.h.pets.length?pstack(x.h.pets.slice(0,1),'md'):''}<div><strong><span>${esc(x.h.name)}</span><time>${esc(x.time)}</time></strong><p>${esc(last(x))}</p><span style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">${x.radar?`<span class="chip pink">${ic('radar')}${esc(TYPES[x.radar]?TYPES[x.radar].short:'Radar')}</span>`:`<span class="chip ${areaCls[x.area]||''}">${x.area}</span>`}${x.urgent?'<span class="chip bad">Urgente</span>':''}${x.result?'<span class="chip ok">'+ic('check')+'Cerrada</span>':''}${x.unread?`<span class="unread">${x.unread}</span>`:''}</span></div></button>`).join('')||'<div class="empty">Nada en esta bandeja.</div>'}</div>
+  ${c?`<div class="chat"><div class="chat-head"><div><strong>${esc(h.name)}</strong><small>${esc(names(h.pets))} · ${c.area}${c.radar?' · abierta por el radar':''}</small></div><button class="btn ghost sm" data-a="fam" data-id="${h.id}">${ic('user')}Ficha</button></div><div class="chat-body">${c.msgs.map(convBub).join('')}</div>
   ${c.ai&&!st.dismissed[c.id]?`<div class="ai-sug"><small>${ic('spark')}RESPUESTA SUGERIDA CON LOS DATOS DE LA FAMILIA</small><p>${esc(c.ai)}</p><div style="display:flex;gap:8px"><button class="btn wa sm" data-a="conv-send" data-id="${c.id}">${ic('send')}Enviar</button><button class="btn ghost sm" data-a="conv-dismiss" data-id="${c.id}">Escribir otra</button></div></div>`:''}
-  <div class="chat-input"><input placeholder="Escriba un mensaje" aria-label="Mensaje"><button class="btn wa sm" data-a="toast" data-m="En el prototipo los mensajes no salen a WhatsApp">${ic('send')}</button></div></div>
-  <aside class="ctx"><div style="display:flex;gap:10px;align-items:center">${pstack(h.pets,'md')}<div><h3>${esc(h.name)}</h3><small class="muted">${esc(h.zone)}</small></div></div><div class="note">${esc(c.ctx||'')}</div>${petsOf(h).map(p=>petMini(p)).join('')}<button class="btn ghost sm" data-a="statement" data-id="${h.id}">${ic('receipt')}Estado de cuenta</button></aside>`:'<div class="empty">Sin conversaciones</div>'}</section>`;
+  <div class="chat-input"><input placeholder="Escriba un mensaje" aria-label="Mensaje"><button class="btn wa sm" data-a="toast" data-m="En el prototipo los mensajes no salen a WhatsApp" aria-label="Enviar">${ic('send')}</button></div></div>
+  <aside class="ctx"><div style="display:flex;gap:10px;align-items:center">${pstack(h.pets,'md')}<div><h3>${esc(h.name)}</h3><small class="muted">${esc(h.zone)}</small></div></div>${c.result?`<div class="result">${ic('check')}<div><b>Resultado</b><p>${esc(c.result)}</p></div></div>`:''}<div class="note">${esc(c.ctx||'')}</div>${petsOf(h).map(p=>petMini(p)).join('')}<button class="btn ghost sm" data-a="statement" data-id="${h.id}">${ic('receipt')}Estado de cuenta</button></aside>`:'<div class="empty">Sin conversaciones</div>'}</section>`;
 }
 function petMini(p){
   const g=PF.foodGroups.find(g=>g.pets.includes(p.id)&&g.buys.length);
@@ -835,11 +933,11 @@ function downloadCSV(){
 
 /* ---------- Asistente ---------- */
 const QS=[
- '¿Cuánto dinero hay en recompras esta semana?',
- '¿Quiénes compraban Royal Canin y no han vuelto?',
- '¿Qué día conviene una promoción de peluquería?',
- '¿Quiénes son mis 10 mejores clientes?',
- '¿Qué familias compran alimento pero nunca usan la peluquería?',
+ 'Cuánto dinero hay en recompras esta semana?',
+ 'Quiénes compraban Royal Canin y no han vuelto?',
+ 'Qué día conviene una promoción de peluquería?',
+ 'Quiénes son mis 10 mejores clientes?',
+ 'Qué familias compran alimento pero nunca usan la peluquería?',
  'Arma un mensaje para los dueños de schnauzer'
 ];
 let aiLog=[];
@@ -850,7 +948,7 @@ function aiAnswer(q){
   if(/día|dia|promoci|peluquer/.test(s)&&!/nunca/.test(s)){const wk=weekdayGroom().slice(1);const low=wk.reduce((a,b)=>b.n<a.n?b:a),high=wk.reduce((a,b)=>b.n>a.n?b:a);return {h:`El <b>${low.d}</b>. Tiene ${Math.round((1-low.n/high.n)*100)}% menos baños que el ${high.d}.`,list:wk.map(x=>`${cap(x.d)}, ${x.n} baños en el año`),base:'Baños y cortes cobrados en caja en los últimos 12 meses.'}}
   if(/mejores|top|10/.test(s)){const t=PF.households.map(h=>[h,annual(h)]).sort((a,b)=>b[1]-a[1]).slice(0,10);return {h:'Estas son las 10 familias que más compraron en los últimos 12 meses.',list:t.map(([h,a],i)=>`${i+1}. ${h.name}, ${names(h.pets)}, ${money(a,1)}`),base:'Suma de todas las ventas por familia, tienda, peluquería, clínica, hotel y daycare.'}}
   if(/nunca|peluquer/.test(s)){const g=insights().find(x=>x.icon==='scissors');const l=PF.households.filter(h=>!h.real&&!h.lostAt&&petsOf(h).some(p=>p.sp==='perro'&&/Shih|Schnauzer|Poodle|Maltés|Yorkshire|Bichón/.test(p.breed))&&(byHH[h.id]||[]).some(x=>x.area==='Tienda')&&!(byHH[h.id]||[]).some(x=>x.area==='Peluquería')).slice(0,6);return {h:g?g.t:'',list:l.map(h=>`${h.name}, ${petsOf(h).map(p=>p.name+' '+p.breed.toLowerCase()).join(' y ')}`),base:'Familias con compras de alimento y ningún baño registrado, con razas que requieren peluquería frecuente.'}}
-  if(/schnauzer|mensaje|arma/.test(s)){const l=PF.households.filter(h=>!h.lostAt&&petsOf(h).some(p=>p.breed==='Schnauzer miniatura'));return {h:`Hay <b>${l.length} familias</b> con schnauzer. Este mensaje sale con el nombre de cada perro.`,quote:`Hola {nombre} 🐾 A los schnauzer como {mascota} les toca corte de raza cada cinco o seis semanas para que el pelo no se enrede. Esta semana hay espacio con {groomer}, que ya conoce a {mascota}. ¿Te lo apartamos?`,base:'Familias activas con al menos un schnauzer miniatura registrado.'}}
+  if(/schnauzer|mensaje|arma/.test(s)){const l=PF.households.filter(h=>!h.lostAt&&petsOf(h).some(p=>p.breed==='Schnauzer miniatura'));return {h:`Hay <b>${l.length} familias</b> con schnauzer. Este mensaje sale con el nombre de cada perro.`,quote:`Hola {nombre} 🐾 A los schnauzer como {mascota} les toca corte de raza cada cinco o seis semanas para que el pelo no se enrede. Esta semana hay espacio con {groomer}, que ya conoce a {mascota}. Te lo apartamos?`,base:'Familias activas con al menos un schnauzer miniatura registrado.'}}
   return {h:'En el sistema final la IA responde cualquier pregunta sobre las ventas, las mascotas y los clientes. En este prototipo pruebe una de las preguntas sugeridas.',list:[],base:''};
 }
 function openAI(){
@@ -858,7 +956,7 @@ function openAI(){
   const i=document.getElementById('ai-in');i.onkeydown=e=>{if(e.key==='Enter'&&i.value.trim()){ask(i.value.trim());i.value=''}};setTimeout(()=>i.focus(),50);
 }
 function aiBody(){
-  return (aiLog.length?'':`<div class="ai-a"><b>¿Qué quiere saber hoy?</b><span class="muted">Estas preguntas se responden con los datos de ejemplo del prototipo.</span><div class="ai-sugs">${QS.map(q=>`<button data-a="ai-ask" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div></div>`)+aiLog.map(x=>`<div class="ai-q">${esc(x.q)}</div><div class="ai-a"><div>${x.a.h}</div>${x.a.list&&x.a.list.length?`<ul>${x.a.list.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>`:''}${x.a.quote?`<div class="bub in" style="max-width:100%;background:var(--wa-bg);box-shadow:none">${esc(x.a.quote)}</div>`:''}${x.a.btn?`<button class="btn ghost sm" data-a="sim" data-id="${x.a.btn}" style="justify-self:start">${ic('phone')}Ver el mensaje para la primera</button>`:''}${x.a.base?`<div class="base">Base del cálculo. ${esc(x.a.base)}</div>`:''}</div>`).join('')+(aiLog.length?`<div class="ai-sugs">${QS.filter(q=>!aiLog.some(x=>x.q===q)).slice(0,3).map(q=>`<button data-a="ai-ask" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`:'');
+  return (aiLog.length?'':`<div class="ai-a"><b>Qué quiere saber hoy?</b><span class="muted">Estas preguntas se responden con los datos de ejemplo del prototipo.</span><div class="ai-sugs">${QS.map(q=>`<button data-a="ai-ask" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div></div>`)+aiLog.map(x=>`<div class="ai-q">${esc(x.q)}</div><div class="ai-a"><div>${x.a.h}</div>${x.a.list&&x.a.list.length?`<ul>${x.a.list.map(l=>`<li>${esc(l)}</li>`).join('')}</ul>`:''}${x.a.quote?`<div class="bub in" style="max-width:100%;background:var(--wa-bg);box-shadow:none">${esc(x.a.quote)}</div>`:''}${x.a.btn?`<button class="btn ghost sm" data-a="sim" data-id="${x.a.btn}" style="justify-self:start">${ic('phone')}Ver el mensaje para la primera</button>`:''}${x.a.base?`<div class="base">Base del cálculo. ${esc(x.a.base)}</div>`:''}</div>`).join('')+(aiLog.length?`<div class="ai-sugs">${QS.filter(q=>!aiLog.some(x=>x.q===q)).slice(0,3).map(q=>`<button data-a="ai-ask" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`:'');
 }
 function ask(q){aiLog.push({q,a:aiAnswer(q)});const b=document.getElementById('ai-body');if(b){b.innerHTML=aiBody();b.scrollTop=b.scrollHeight}}
 
@@ -911,18 +1009,26 @@ document.addEventListener('click',e=>{
     case 'fam-f':famF=el.dataset.f;famLimit=40;rerender();break;
     case 'fam-more':famLimit+=40;document.getElementById('fam-body').innerHTML=famRows();break;
     case 'statement':showStatement(id);break;
-    case 'sell':pos={hh:id,pets:HHMAP[id].pets.slice(0,1),lines:[],pay:'Yappy',deliv:false,zone:''};closeOverlay();location.hash='caja';if(route==='caja')rerender();break;
+    case 'sell':pos={hh:id,pets:HHMAP[id].pets.slice(0,1),lines:[],pay:'Yappy',deliv:false,zone:'',fiscal:'cf'};closeOverlay();location.hash='caja';if(route==='caja')rerender();break;
     case 'pos-cat':posCat=el.dataset.c;rerender();break;
     case 'pos-add':posAdd(id);rerender();break;
     case 'pos-qty':{const l=pos.lines[+el.dataset.i];l.q+=+el.dataset.d;if(l.q<=0)pos.lines.splice(+el.dataset.i,1);rerender();break}
     case 'pos-pet':{const i=pos.pets.indexOf(id);if(i>=0)pos.pets.splice(i,1);else pos.pets.push(id);rerender();break}
     case 'pos-pay':pos.pay=el.dataset.p;rerender();break;
+    case 'pos-fiscal':pos.fiscal=el.dataset.f;rerender();break;
+    case 'fac-f':facF=el.dataset.f;facLimit=30;rerender();break;
+    case 'fac-more':facLimit+=30;rerender();break;
+    case 'inv':{const r=invoices().find(x=>x.id===id);if(r)showInvoice(r);break}
+    case 'itbms':showITBMS();break;
+    case 'itbms-csv':downloadMonthCSV();break;
+    case 'nc':{const r=invoices().find(x=>x.id===id);if(r){closeOverlay();toast('Nota de crédito emitida contra la factura '+r.num+' y enviada a la DGI')}break}
     case 'pos-deliv':pos.deliv=!pos.deliv;if(pos.deliv&&pos.hh&&!pos.zone)pos.zone=HHMAP[pos.hh].zone;rerender();break;
     case 'pos-clear':pos.lines=[];rerender();break;
     case 'pos-charge':posCharge();break;
     case 'pos-sug':{const o=radar().find(x=>x.id===id);if(!o)break;if(o.type==='bano')o.pets.forEach(p=>posAdd(PETMAP[p].groomSvc||'v1',[p]));else if(o.type==='vacuna')o.vax.forEach(x=>posAdd(x.v.name==='Antirrábica'?'v11':x.v.name==='Séxtuple'?'v10':'v12',[x.p.id]));else if(o.prod)posAdd(o.prod.id,o.pets.slice());rerender();break}
     case 'order-next':{const o=PF.orders.find(x=>x.id===id);const i=OST.indexOf(o.status);o.status=OST[Math.min(3,i+1)];st.orderStatus[o.id]=o.status;save();rerender();toast(o.id+' '+o.status.toLowerCase()+(o.status==='En ruta'?'. El cliente recibe el aviso por WhatsApp':''));break}
     case 'conv':convSel=id;rerender();break;
+    case 'conv-f':convF=el.dataset.f;convSel=null;rerender();break;
     case 'conv-send':{const c=convList().find(x=>x.id===id);const pc=PF.conv.find(x=>x.id===id);if(pc){pc.msgs.push(['out',pc.ai,nowLabel()]);pc.unread=0;pc.ai=null}rerender();toast('Respuesta enviada');break}
     case 'conv-dismiss':st.dismissed[id]=1;rerender();break;
     case 'auto':st.autos[el.dataset.k]=st.autos[el.dataset.k]===false;save();el.classList.toggle('on');toast(st.autos[el.dataset.k]===false?'Regla apagada':'Regla encendida');break;
@@ -938,7 +1044,7 @@ document.addEventListener('click',e=>{
     case 'ai-send':{const i=document.getElementById('ai-in');if(i&&i.value.trim()){ask(i.value.trim());i.value=''}break}
     case 'print':window.print();break;
     case 'toast':toast(el.dataset.m);break;
-    case 'reset':if(confirm('¿Restablecer los datos de ejemplo? Se borran las ventas, citas y mensajes que haya hecho en el prototipo.')){try{localStorage.removeItem(KEY)}catch(x){}location.reload()}break;
+    case 'reset':if(confirm('Restablecer los datos de ejemplo? Se borran las ventas, citas y mensajes que haya hecho en el prototipo.')){try{localStorage.removeItem(KEY)}catch(x){}location.reload()}break;
   }
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOverlay();if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'&&document.getElementById('app').innerHTML){e.preventDefault();openSearch()}});
