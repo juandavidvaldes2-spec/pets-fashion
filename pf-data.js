@@ -287,9 +287,9 @@ households.forEach(hh=>{
 
 /* ---------- Familia Valdés, datos REALES de los chats ---------- */
 const JV={id:'H-JV',name:'Juan Valdés',phone:'+507 6•••-••••',zone:'Dirección registrada',since:at(2025,11,26),loyal:'fiel',lostAt:null,pets:['P-FR','P-TH','P-JU'],bestHour:'12:00 p.m.',balance:0,notes:'Paga por Yappy. Pide delivery a la dirección registrada.',real:true,partner:'Valeria'};
-const FR={id:'P-FR',hh:'H-JV',name:'Francesco',sp:'perro',breed:'Raza pequeña, pelo largo',coat:'neutro',weight:null,grams:60,sex:'Macho',birth:null,groomEvery:35,groomSvc:'v2',longHair:true,vax:[],notes:'',groomer:'Keyla',real:true};
-const TH={id:'P-TH',hh:'H-JV',name:'Thor',sp:'perro',breed:'Raza pequeña, pelo largo',coat:'neutro2',weight:null,grams:60,sex:'Macho',birth:null,groomEvery:35,groomSvc:'v2',longHair:true,vax:[],notes:'',groomer:'Keyla',real:true};
-const JU={id:'P-JU',hh:'H-JV',name:'Julieta',sp:'perro',breed:'Raza pequeña',coat:'neutro3',weight:null,grams:60,sex:'Hembra',birth:null,groomEvery:0,groomSvc:null,longHair:false,vax:[],notes:'Come una fórmula distinta a la de Francesco y Thor.',real:true};
+const FR={id:'P-FR',hh:'H-JV',name:'Francesco',sp:'perro',breed:'Pomerania',coat:'neutro',weight:null,grams:60,sex:'Macho',birth:null,groomEvery:35,groomSvc:'v2',longHair:true,vax:[],notes:'',groomer:'Keyla',real:true};
+const TH={id:'P-TH',hh:'H-JV',name:'Thor',sp:'perro',breed:'Pomerania',coat:'neutro2',weight:null,grams:60,sex:'Macho',birth:null,groomEvery:35,groomSvc:'v2',longHair:true,vax:[],notes:'',groomer:'Keyla',real:true};
+const JU={id:'P-JU',hh:'H-JV',name:'Julieta',sp:'perro',breed:'Pomerania',coat:'neutro3',weight:null,grams:60,sex:'Hembra',birth:null,groomEvery:0,groomSvc:null,longHair:true,vax:[],notes:'Come una fórmula distinta a la de Francesco y Thor.',real:true};
 [FR,TH,JU].forEach(p=>{pets.push(p);PETMAP[p.id]=p});
 households.unshift(JV);HHMAP[JV.id]=JV;
 const jvSales=[
