@@ -93,8 +93,10 @@ const services=[
  {id:'v14',name:'Hotel noche perro pequeño',area:'Hotel',price:30,min:0},
  {id:'v15',name:'Hotel noche perro mediano o grande',area:'Hotel',price:38,min:0},
  {id:'v19',name:'Hotel noche gato',area:'Hotel',price:24,min:0},
- {id:'v16',name:'Daycare por día',area:'Daycare',price:22,min:0},
- {id:'v17',name:'Daycare paquete de 10 días',area:'Daycare',price:190,min:0}
+ {id:'v16',name:'Guardería por día',area:'Daycare',price:22,min:0},
+ {id:'v17',name:'Guardería Plan medio 15 días',area:'Daycare',price:255,min:0,plan:'medio'},
+ {id:'v23',name:'Guardería Plan full mes 30 días',area:'Daycare',price:450,min:0,plan:'full'},
+ {id:'v24',name:'Guardería Plan Express 3 días',area:'Daycare',price:60,min:0,plan:'express'}
 ];
 services.forEach(v=>{v.kind='servicio';v.tax=0.07;v.cat=v.area});
 const CAT={};[...products,...services].forEach(x=>CAT[x.id]=x);
@@ -498,7 +500,7 @@ const referrals=[];
   const fieles=households.filter(h=>!h.real&&h.loyal==='fiel'&&!h.lostAt&&TODAY-h.since>200*DAY);
   const svcOf=h=>{const p=h.pets.map(id=>PETMAP[id]).find(p=>p.groomSvc)||PETMAP[h.pets[0]];return p&&p.groomSvc?p.groomSvc:'v1'};
   nuevos.slice(0,22).forEach((h,k)=>{
-    const from=pick(fieles);const svc=CAT[svcOf(h)];const first=sales.filter(x=>x.hh===h.id).sort((a,b)=>a.t-b.t)[0];
+    const from=pick(fieles);const svc=CAT[k%4===1?'v9':k%6===3?'v24':svcOf(h)];const first=sales.filter(x=>x.hh===h.id).sort((a,b)=>a.t-b.t)[0];
     const used=!!first&&k%5!==4;
     const r={id:'RF'+k,t:h.since,from:from.id,to:h.id,code:from.refCode,svc:svc.id,price:svc.price,disc:used?svc.price*.5:0,credit:used?svc.price*.25:0,status:used?'Usó su beneficio':'Registrado',redeemed:used&&rnd()<.4};
     referrals.push(r);
@@ -507,5 +509,25 @@ const referrals=[];
   referrals.sort((a,b)=>b.t-a.t);
 })();
 
-window.PF={hourNow,TODAY,DAY,at,CAT,products,services,households,HHMAP,pets,PETMAP,sales,foodGroups,groomToday,clinicToday,ROOMS,stays,daycareToday,conv,orders,seedAppts,recepcion,referrals,ZONES,FREE_ZONES,GROOMERS,VETS,HOLIDAYS,gramsFor};
+/* ---------- Tarjetas de guardería, como la tarjeta física de Pets Fashion ---------- */
+const DCPLAN={full:{id:'v23',name:'Plan full mes',days:30,vig:45},medio:{id:'v17',name:'Plan medio',days:15,vig:30},express:{id:'v24',name:'Plan Express',days:3,vig:7}};
+const dcards=[];daycareToday.slice(-3).forEach((d,i)=>{d.in=['11:00 a.m.','11:30 a.m.','12:00 p.m.'][i]});
+(function(){
+  const OBS=['Comió todo y durmió la siesta','Jugó toda la mañana en el patio','Llegó con la correa floja, se le ajustó','Se cansó temprano, tomó mucha agua','Muy activo, salió a dos paseos','Comió la mitad de su ración'];
+  households.filter(h=>h.daycare).forEach((h,i)=>{
+    const p=h.pets.map(id=>PETMAP[id]).find(x=>x.sp==='perro');if(!p)return;
+    const plan=i%5===0?'express':i%3===0?'full':'medio';const P=DCPLAN[plan];
+    const startAgo=plan==='express'?ri(1,4):ri(4,P.vig-4);
+    const start=dayStart(TODAY-startAgo*DAY),vence=start+P.vig*DAY;
+    const used=[];let t=start;
+    while(t<TODAY&&used.length<P.days){const wd=new Date(t).getDay();if(wd!==0&&wd!==6&&rnd()<(plan==='full'?.95:.62))used.push({t,h:pick(['7:30 a.m.','8:00 a.m.','8:15 a.m.','9:00 a.m.']),obs:rnd()<.2?pick(OBS):''});t+=DAY}
+    const dt=daycareToday.find(d=>d.pet===p.id);if(dt&&used.length<P.days&&daycareToday.indexOf(dt)<daycareToday.length-3)used.push({t:TODAY,h:dt.in,obs:''});
+    dcards.push({id:'DC'+i,hh:h.id,pet:p.id,plan,days:P.days,start,vence,used});
+    h.daycare.left=P.days-used.length;h.daycare.card='DC'+i;
+  });
+  const c6=conv.find(c=>c.id==='c6');
+  if(c6){const card=dcards.find(d=>d.hh===c6.hh);if(card){const MESL=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];const v=new Date(card.vence);const left=card.days-card.used.length,pn=PETMAP[card.pet].name;c6.msgs=[['in','Cuántos días me quedan de la guardería?','4:02 p.m.'],['out',left>0?'Hola 🐾 A '+pn+' le quedan '+left+' días de su '+DCPLAN[card.plan].name+' de '+card.days+' días. La tarjeta vence el '+v.getDate()+' de '+MESL[v.getMonth()]+'.':'Hola 🐾 '+pn+' ya usó los '+card.days+' días de su '+DCPLAN[card.plan].name+'. Si quieres renovarlo, te mando por aquí mismo el link de Yappy.','4:02 p.m.']];c6.ctx='Respondido por el asistente con la tarjeta de guardería de la familia.'}}
+})();
+
+window.PF={hourNow,TODAY,DAY,at,CAT,products,services,households,HHMAP,pets,PETMAP,sales,foodGroups,groomToday,clinicToday,ROOMS,stays,daycareToday,conv,orders,seedAppts,recepcion,referrals,dcards,DCPLAN,ZONES,FREE_ZONES,GROOMERS,VETS,HOLIDAYS,gramsFor};
 })();

@@ -222,13 +222,13 @@ function msgFor(o){
 /* ---------- Navegación ---------- */
 const NAV=[
  ['', [['hoy','grid','Hoy']]],
- ['CRECIMIENTO',[['radar','radar','Radar de recompra'],['recomendados','gift','Recomendados'],['automatizaciones','mega','Automatizaciones']]],
+ ['CRECIMIENTO',[['radar','radar','Radar de recompra'],['fidelizacion','gift','Fidelización'],['automatizaciones','mega','Automatizaciones']]],
  ['OPERACIÓN',[['agenda','calendar','Agenda'],['clinica','steth','Clínica veterinaria'],['caja','cash','Caja y recepción'],['facturacion','receipt','Facturación DGI'],['pedidos','truck','Pedidos y delivery'],['inventario','box','Inventario']]],
  ['CLIENTES',[['familias','users','Familias y mascotas'],['conversaciones','chat','Conversaciones']]],
  ['DIRECCIÓN',[['reportes','chart','Reportes']]]
 ];
 const LABEL={};NAV.forEach(g=>g[1].forEach(n=>LABEL[n[0]]=n[2]));
-let route=(location.hash.slice(1)||'hoy').split('?')[0];if(!LABEL[route])route='hoy';
+let fidTab='estrategias';let route=(location.hash.slice(1)||'hoy').split('?')[0];if(route==='recomendados'){route='fidelizacion';fidTab='recom'}if(!LABEL[route])route='hoy';
 
 function shell(){
   const pend=activeOpps().filter(o=>!st.sent[o.id]).length;
@@ -249,7 +249,7 @@ function view(){
   switch(route){
     case 'radar':return vRadar();case 'automatizaciones':return vAutos();case 'agenda':return vAgenda();case 'caja':return vCaja();
     case 'pedidos':return vPedidos();case 'inventario':return vInventario();case 'familias':return vFamilias();case 'conversaciones':return vConv();
-    case 'reportes':return vReportes();case 'facturacion':return vFactura();case 'clinica':return vClinica();case 'recomendados':return vRecom();default:return vHoy();
+    case 'reportes':return vReportes();case 'facturacion':return vFactura();case 'clinica':return vClinica();case 'fidelizacion':return vFid();default:return vHoy();
   }
 }
 function render(keepScroll){if(!allowed(route)){route=ROLES[role()].home;try{history.replaceState(null,'','#'+route)}catch(e){}}const y=window.scrollY;document.getElementById('app').innerHTML=shell();document.body.classList.remove('nav-open');if(keepScroll)window.scrollTo(0,y);else window.scrollTo(0,0);afterRender()}
@@ -265,7 +265,7 @@ function afterRender(){
   const rs=document.getElementById('role-sel');if(rs)rs.onchange=e=>{st.role=e.target.value;save();const R0=ROLES[st.role];if(R0.ag)agTab=R0.ag;toast('Ahora ve el sistema como '+st.role);if(location.hash.slice(1)===R0.home)render();else location.hash=R0.home};
   const tx=document.getElementById('clin-tx');if(tx)tx.scrollTop=tx.scrollHeight;
 }
-window.addEventListener('hashchange',()=>{route=(location.hash.slice(1)||'hoy').split('?')[0];if(!LABEL[route])route='hoy';closeOverlay();render()});
+window.addEventListener('hashchange',()=>{route=(location.hash.slice(1)||'hoy').split('?')[0];if(route==='recomendados'){route='fidelizacion';fidTab='recom'}if(!LABEL[route])route='hoy';closeOverlay();render()});
 
 /* ---------- Vista Hoy ---------- */
 let scen=30;
@@ -514,7 +514,7 @@ const AUTOS=[
  {k:'dormido',title:'Familias que dejaron de venir',p:'Cuando una familia pasa el doble de su frecuencia normal sin comprar.',when:'Una sola vez, sin insistir',meta:'Marketing'},
  {k:'estado',title:'Estado de cuenta con link de Yappy',p:'Al cerrar un baño, una estadía de hotel o un paquete de daycare. El detalle va por mascota.',when:'Al cerrar la venta en caja',meta:'Utilidad'},
  {k:'recordatorio',title:'Recordatorio de cita',p:'Para peluquería y clínica, con botones para confirmar o mover la cita.',when:'Un día antes de la cita',meta:'Utilidad'},
- {k:'daycare',title:'Paquete de daycare por acabarse',p:'Cuando al paquete de 10 días le quedan dos, con el link para renovarlo.',when:'Al descontar el octavo día',meta:'Utilidad'}
+ {k:'daycare',title:'Tarjeta de guardería por acabarse',p:'Cuando a la tarjeta le quedan dos días o está por vencer, con el link de Yappy para renovarla.',when:'Al marcar la entrada',meta:'Utilidad'}
 ];
 function vAutos(){
   const r=radar();
@@ -523,7 +523,7 @@ function vAutos(){
   <div class="auto-grid">${AUTOS.map(a=>{
     const on=st.autos[a.k]!==false;const list=r.filter(o=>o.type===a.k);const sample=list.find(o=>o.hh.real)||list[0];
     const dc=PF.households.filter(h=>h.daycare&&h.daycare.left<=2);
-    const txt=sample?msgFor(sample).text:a.k==='daycare'?(dc[0]?`Hola ${first(dc[0])} 🐾 Al paquete de daycare de ${names(dc[0].pets.filter(id=>PETMAP[id].sp==='perro').slice(0,2))} le quedan ${dc[0].daycare.left} días. Te lo renovamos? Puedes pagarlo con este link de Yappy.`:''):a.k==='estado'?'Hola Juan 🐾 Este es el estado de cuenta de Francesco y Thor por el baño de hoy. Total $42.80. Puedes pagarlo con este link de Yappy.':'Hola Juan 🐾 Te recordamos la cita de mañana a las 9:00 a.m. para Francesco y Thor. La confirmas?';
+    const txt=sample?msgFor(sample).text:a.k==='daycare'?(dc[0]?(()=>{const cd=PF.dcards.find(x=>x.id===dc[0].daycare.card);const pn=cd?PETMAP[cd.pet].name:names(dc[0].pets.slice(0,1));const l=dc[0].daycare.left;return `Hola ${first(dc[0])} 🐾 ${l>0?'A la tarjeta de guardería de '+pn+' le '+(l===1?'queda 1 día':'quedan '+l+' días'):pn+' ya usó todos los días de su tarjeta de guardería'}. Si quieres renovarla, puedes pagarla con este link de Yappy.`})():''):a.k==='estado'?'Hola Juan 🐾 Este es el estado de cuenta de Francesco y Thor por el baño de hoy. Total $42.80. Puedes pagarlo con este link de Yappy.':'Hola Juan 🐾 Te recordamos la cita de mañana a las 9:00 a.m. para Francesco y Thor. La confirmas?';
     const val=list.reduce((x,o)=>x+(o.type==='dormido'?o.annual:o.value),0);
     return `<div class="card auto"><div class="auto-top"><span class="ic">${ic(TYPES[a.k]?TYPES[a.k].icon:a.k==='estado'?'receipt':a.k==='daycare'?'sun':'bell')}</span><div><h3>${a.title}</h3><p>${a.p}</p></div><button class="switch ${on?'on':''}" data-a="auto" data-k="${a.k}" aria-label="Activar ${a.title}"></button></div>
     <div class="auto-msg"><div class="bub in">${esc(txt)}<time>${a.when}</time></div></div>
@@ -555,7 +555,7 @@ function agHotel(){
   const days=Array.from({length:21},(_,i)=>TODAY+i*DAY);
   return `<section class="card panel"><div class="panel-head"><div><h2>Hotel · hoy</h2><p>${now.length} de ${PF.ROOMS.length} suites ocupadas</p></div></div><div class="rooms">${PF.ROOMS.map(r=>{const s=now.find(x=>x.room===r.id);if(!s)return `<div class="room free"><small>${r.name}</small><em>Libre · ${r.size==='gato'?'gatos':'perro '+r.size}</em></div>`;const p=PETMAP[s.pet];return `<div class="room" data-a="fam" data-id="${s.hh}" style="cursor:pointer"><small>${r.name}</small><div style="display:flex;gap:8px;align-items:center">${pav(p,'sm')}<strong>${esc(p.name)}</strong></div><em>${esc(HHMAP[s.hh].name)}</em><em>Sale ${rel(dd(s.to))}</em></div>`}).join('')}</div></section>
   <section class="card panel" style="margin-top:18px"><div class="panel-head"><div><h2>Ocupación de las próximas tres semanas</h2><p>Cada fila es una suite. El rosado es noche ocupada.</p></div></div><div class="table-wrap"><div class="heat"><span></span>${days.map(t=>`<span class="hd">${new Date(t).getDate()}</span>`).join('')}${PF.ROOMS.map(r=>`<span class="lab">${r.name}</span>${days.map(t=>{const o=PF.stays.some(s=>s.room===r.id&&s.from<=t&&s.to>t);return `<span style="background:${o?'#f3a3bf':'#f3efec'}"></span>`}).join('')}`).join('')}</div></div></section>
-  <section class="card panel" style="margin-top:18px"><div class="panel-head"><div><h2>Daycare · hoy</h2><p>${PF.daycareToday.length} perritos. Los paquetes se descuentan solos y avisan cuando quedan dos días.</p></div></div><div class="timeline">${PF.daycareToday.map(d=>{const p=PETMAP[d.pet];const hh=HHMAP[d.hh];return `<div class="tl-row" data-a="fam" data-id="${d.hh}" style="cursor:pointer"><div class="tl-time">${d.in}<small>entrada</small></div>${pav(p,'md')}<div class="tl-main"><strong>${esc(p.name)} · ${esc(p.breed)}</strong><small>${esc(hh.name)} · sale ${d.out}</small></div><span class="chip ${hh.daycare&&hh.daycare.left<=2?'warn':'ok'}">${hh.daycare?hh.daycare.left+' días de paquete':'Por día'}</span></div>`}).join('')}</div></section>`;
+  <section class="card panel" style="margin-top:18px"><div class="panel-head"><div><h2>Guardería · hoy</h2><p>${PF.daycareToday.length} perritos. Al marcar la entrada se descuenta el día de su tarjeta y la familia recibe el aviso por WhatsApp.</p></div><button class="btn ghost sm" data-a="fid-tab" data-t="dc">Ver todas las tarjetas</button></div><div class="timeline">${PF.daycareToday.map(d=>{const p=PETMAP[d.pet];const hh=HHMAP[d.hh];const c=PF.dcards.find(x=>x.pet===d.pet&&x.hh===d.hh);const u=c&&c.used.find(x=>x.t>=TODAY-DAY/2);const inn=c?!!u:PF.daycareToday.indexOf(d)<PF.daycareToday.length-3;return `<div class="tl-row dc-tl ${inn?'':'pend'}"><div class="tl-time">${u?u.h:d.in}<small>${inn?'entró':'esperado'}</small></div>${pav(p,'md')}<div class="tl-main"><strong>${esc(p.name)} · ${esc(p.breed)}</strong><small>${esc(hh.name)} · sale ${d.out}</small>${c?`<div class="dc-prog"><i style="width:${Math.round(c.used.length/c.days*100)}%"></i></div><small>${esc(PF.DCPLAN[c.plan].name)} · ${dcLeft(c)} de ${c.days} días disponibles</small>`:''}</div>${c?(u?`<button class="btn ghost xs" data-a="dc-open" data-id="${c.id}">Ver tarjeta</button>`:`<button class="btn pink xs" data-a="dc-in" data-id="${c.id}">${ic('check')}Marcar entrada</button>`):'<span class="chip">Por día</span>'}</div>`}).join('')}</div></section>`;
 }
 
 /* ---------- Caja ---------- */
@@ -586,8 +586,7 @@ function vCaja(){
   <div class="field"><label for="pos-client">Familia</label><select id="pos-client" class="select"><option value="">Cliente de mostrador</option>${opts.map(h=>`<option value="${h.id}" ${pos.hh===h.id?'selected':''}>${esc(h.name)} · ${esc(names(h.pets))}</option>`).join('')}</select></div>
   ${hh?`<div class="field"><label>Mascotas de esta venta</label><div class="pets-pick">${petsOf(hh).map(p=>`<button class="${pos.pets.includes(p.id)?'on':''}" data-a="pos-pet" data-id="${p.id}">${pav(p,'sm')}${esc(p.name)}</button>`).join('')}</div></div>`:''}
   ${sugs.length?`<div class="suggest"><b>${ic('spark')}Le toca a esta familia</b>${sugs.slice(0,4).map(o=>`<div class="sug"><span>${esc(TYPES[o.type].short)} · ${esc(names(o.pets))}<br><small class="muted">${esc(o.type==='bano'?CAT[PETMAP[o.pets[0]].groomSvc].name:o.prod?o.prod.name:o.vax?o.vax.map(x=>x.v.name).join(', '):'')}</small></span><button class="btn xs ghost" data-a="pos-sug" data-id="${o.id}">${ic('plus')}Agregar</button></div>`).join('')}</div>`:''}
-  ${hh&&refPending(hh.id)&&!pos.lines.some(l=>String(l.id).startsWith('rd-'))?`<div class="suggest" style="background:#eef7f2;border-color:#bfe3cf"><b style="color:var(--ok)">${ic('gift')}Viene recomendado por ${esc(HHMAP[refPending(hh.id).from].name)}</b><div class="sug"><span class="muted">50% en su primer servicio. A quien recomendó le llega el crédito al cobrar.</span><button class="btn xs ghost" data-a="ref-disc">${ic('plus')}Aplicar</button></div></div>`:''}
-  ${hh&&hh.refCredit>0&&!pos.lines.some(l=>String(l.id).startsWith('rc-'))?`<div class="suggest" style="background:#eef7f2;border-color:#bfe3cf"><b style="color:var(--ok)">${ic('gift')}Crédito de recomendados ${money(hh.refCredit)}</b><div class="sug"><span class="muted">Lo ganó por recomendar clientes nuevos. Se usa en servicios.</span><button class="btn xs ghost" data-a="ref-credit">${ic('plus')}Usar</button></div></div>`:''}
+  ${fidSugs(hh)}
   ${hh&&rqAll().some(t=>t.hh===hh.id&&!(pos.tickets||[]).includes(t.id))?`<div class="suggest"><b>${ic('receipt')}Esta familia tiene otra cuenta en recepción</b>${rqAll().filter(t=>t.hh===hh.id&&!(pos.tickets||[]).includes(t.id)).map(t=>`<div class="sug"><span>${t.area} · ${esc(names(t.pets))}<br><small class="muted">${money(rqTotal(t))}</small></span><button class="btn xs ghost" data-a="rq-load" data-id="${t.id}">${ic('plus')}Agregar</button></div>`).join('')}</div>`:''}
   ${hh&&hh.balance>0?`<div class="suggest" style="background:#fff7e8;border-color:#f1dcb0"><b style="color:var(--warn)">${ic('receipt')}Saldo pendiente ${money(hh.balance)}</b><div class="sug"><span class="muted">Cargos abiertos de peluquería, hotel o daycare.</span><button class="btn xs ghost" data-a="statement" data-id="${hh.id}">Ver estado</button></div></div>`:''}
   <div class="lines">${c.lines.length?c.lines.map((l,i)=>`<div class="line"><div><b>${esc(l.it.name)}</b><small>${mf(l.it.price)}${l.it.tax&&l.it.price>0?' + ITBMS':''}${l.pets&&l.pets.length?' · '+esc(names(l.pets)):''}</small></div><div class="qty"><button data-a="pos-qty" data-i="${i}" data-d="-1">−</button><span>${l.q}</span><button data-a="pos-qty" data-i="${i}" data-d="1">+</button></div><b>${mf(l.it.price*l.q)}</b></div>`).join('')+(c.gift?`<div class="line"><div><b class="gift">Snack de regalo</b><small>Por alimento de 1.5 kg o más, regla de la tienda</small></div><span></span><b class="gift">$0.00</b></div>`:''):'<div class="empty">Toque un producto o servicio para agregarlo.</div>'}</div>
@@ -597,6 +596,17 @@ function vCaja(){
   <div class="field"><label>Factura electrónica a nombre de</label><div class="seg" style="grid-template-columns:1fr 1fr"><button class="${pos.fiscal==='cf'?'on':''}" data-a="pos-fiscal" data-f="cf">Consumidor final</button><button class="${pos.fiscal==='nom'?'on':''}" data-a="pos-fiscal" data-f="nom" ${hh?'':'disabled'}>${hh?esc(first(hh))+' con cédula':'La familia'}</button></div></div>
   <div class="seg">${['Yappy','Tarjeta','Efectivo','ACH','A cuenta'].map(p=>`<button class="${pos.pay===p?'on':''}" data-a="pos-pay" data-p="${p}" ${p==='A cuenta'&&!hh?'disabled':''}>${p}</button>`).join('')}</div>
   <button class="btn pink" style="height:48px;font-size:15px" data-a="pos-charge" ${c.lines.length?'':'disabled'}>${ic('check')}${pos.pay==='A cuenta'?'Cargar a la cuenta':'Cobrar '+money(c.total)}</button></aside></div>`;
+}
+function fidSugs(hh){
+  if(!hh)return '';let out='';const box=(t,txt,btn)=>`<div class="suggest fid-s"><b>${ic('gift')}${t}</b><div class="sug"><span class="muted">${txt}</span>${btn}</div></div>`;
+  const rp=refPending(hh.id);
+  if(rp&&!pos.lines.some(l=>String(l.id).startsWith('rd-'))){const el=pos.lines.find(l=>refOK(l.id));const svc=el?CAT[el.id]:CAT[refOK(rp.svc)?rp.svc:'v1'];
+    out+=box('Viene recomendado por '+esc(HHMAP[rp.from].name),`50% en su primer servicio, ${esc(svc.name.toLowerCase())}. Solo aplica en peluquería, baño, guardería, consulta o vacunación.`,`<button class="btn xs ghost" data-a="ref-disc">${ic('plus')}Aplicar</button>`)}
+  if(hh.refCredit>0&&!pos.lines.some(l=>String(l.id).startsWith('rc-'))){const base=pos.lines.filter(l=>refOK(l.id)).reduce((a,l)=>a+CAT[l.id].price*l.q,0);
+    out+=box('Crédito de recomendados '+money(hh.refCredit),base>0?`Se descuentan ${money(Math.min(hh.refCredit,base))} de los servicios de esta venta.`:'Se usa solo en baño, peluquería, guardería, consulta o vacunación. Agregue uno de esos servicios para usarlo.',`<button class="btn xs ghost" data-a="ref-credit" ${base>0?'':'disabled'}>${ic('plus')}Usar</button>`)}
+  if(!rp&&!pos.lines.some(l=>String(l.id).startsWith('rd-')))stForFamily(hh.id).filter(x=>!pos.lines.some(l=>l.id==='sd-'+x.id)).forEach(x=>{const base=stBase(x);
+    out+=box(esc(x.name),esc(stratDesc(x))+(base>0?'':' Agregue uno de esos servicios para aplicarla.'),`<button class="btn xs ghost" data-a="st-apply" data-id="${x.id}" ${base>0?'':'disabled'}>${ic('plus')}Aplicar</button>`)});
+  return out;
 }
 function posAdd(id,pets){
   const it=CAT[id];if(!it)return;
@@ -608,13 +618,16 @@ function posCharge(){
   const c=posCalc();if(!c.lines.length)return;
   const hhId=pos.hh||'H-MOSTRADOR';
   if(!HHMAP[hhId]){HHMAP[hhId]={id:hhId,name:'Cliente de mostrador',pets:[],zone:'',balance:0,bestHour:'',since:TODAY};}
-  const lines=c.lines.map(l=>({id:l.id,name:l.it.name,q:l.q,price:l.it.price,tax:l.it.tax,pets:l.pets||[]}));
+  const lines=c.lines.map(l=>({id:l.id,name:l.it.name,q:l.q,price:l.it.price,tax:l.it.tax,pets:l.pets||[],svc:l.it.svc}));
   if(c.gift)lines.push({id:'s0',name:'Snack de regalo',q:1,price:0,tax:.07,pets:[]});
   const area=c.lines.some(l=>l.it.area==='Peluquería')?'Peluquería':c.lines.some(l=>l.it.area==='Clínica')?'Clínica':c.lines.some(l=>l.it.area==='Hotel')?'Hotel':c.lines.some(l=>l.it.area==='Daycare')?'Daycare':'Tienda';
   const sale=mkSale(hhId,lines,{area,channel:'Tienda',pay:pos.pay});
   if(pos.tickets&&pos.tickets.length){st.recepDone=[...(st.recepDone||[]),...pos.tickets]}
-  const rd=lines.find(l=>String(l.id).startsWith('rd-'));if(rd&&pos.hh){const r=refPending(pos.hh);if(r){const svc=CAT[r.svc];const credit=r2(svc.price*.25);r.status='Usó su beneficio';r.disc=r2(svc.price*.5);r.credit=credit;st.refUsed[r.id]={disc:r.disc,credit};const f=HHMAP[r.from];f.refCredit=r2((f.refCredit||0)+credit);setTimeout(()=>toast('Se le cargaron '+money(credit)+' de crédito a '+f.name+' y se le avisó por WhatsApp'),3600)}}
-  if(lines.some(l=>String(l.id).startsWith('rc-'))&&pos.hh){HHMAP[pos.hh].refCredit=0;st.creditUsed[pos.hh]=nowLabel()}sale.fiscal=pos.fiscal==='nom'&&pos.hh?'nom':'cf';
+  const rd=lines.find(l=>String(l.id).startsWith('rd-'));if(rd&&pos.hh){const r=refPending(pos.hh);if(r){const disc=-rd.price*rd.q;const credit=r2(disc/2);r.status='Usó su beneficio';r.disc=r2(disc);r.credit=credit;r.svc=rd.svc||r.svc;r.price=CAT[r.svc].price;st.refUsed[r.id]={disc:r.disc,credit,svc:r.svc};const f=HHMAP[r.from];f.refCredit=r2((f.refCredit||0)+credit);setTimeout(()=>toast('A '+f.name+' se le abonaron '+money(credit)+' de crédito y le llegó el aviso por WhatsApp'),3600)}}
+  const rc=lines.find(l=>String(l.id).startsWith('rc-'));if(rc&&pos.hh){const used=r2(-rc.price*rc.q);const h=HHMAP[pos.hh];h.refCredit=Math.max(0,r2((h.refCredit||0)-used));const prev=st.creditUsed[pos.hh];st.creditUsed[pos.hh]=r2((typeof prev==='number'?prev:0)+used)}
+  lines.filter(l=>String(l.id).startsWith('sd-')).forEach(l=>{const x=(st.strategies||[]).find(y=>'sd-'+y.id===l.id);if(x&&pos.hh){x.usos=(x.usos||0)+1;st.stUsed=st.stUsed||{};st.stUsed[stKey(x,pos.hh)]=nowLabel()}});
+  if(pos.hh)dcCreateFromSale(sale);
+  sale.fiscal=pos.fiscal==='nom'&&pos.hh?'nom':'cf';
   if(pos.hh){st.newSales.push(sale)}
   applySale(sale,true);
   if(pos.deliv&&pos.hh){const ord={id:'PD-'+(3300+st.orders.length),sale:sale.id,hh:pos.hh,status:'Pagado',channel:'Tienda',total:sale.total,items:sale.lines,zone:pos.zone||HHMAP[pos.hh].zone,time:nowLabel(),fresh:true};st.orders.push(ord);PF.orders.unshift(ord)}
@@ -715,10 +728,10 @@ function downloadMonthCSV(){
 /* ---------- Perfiles por rol ---------- */
 const ROLES={
  'Dueño':{home:'hoy',nav:null,costs:true,desc:'Ve todo el negocio, incluidos costos, márgenes y reportes.'},
- 'Recepción':{home:'caja',nav:['hoy','radar','recomendados','agenda','caja','facturacion','pedidos','inventario','familias','conversaciones'],costs:false,desc:'Cobra, agenda y atiende a las familias. No ve costos, márgenes ni reportes.'},
+ 'Recepción':{home:'caja',nav:['hoy','radar','fidelizacion','agenda','caja','facturacion','pedidos','inventario','familias','conversaciones'],costs:false,desc:'Cobra, agenda y atiende a las familias. No ve costos, márgenes ni reportes.'},
  'Veterinario':{home:'clinica',nav:['clinica','agenda','familias','conversaciones'],costs:false,ag:'Clínica',desc:'Solo sus consultas, la agenda de la clínica y las fichas de las mascotas.'},
  'Peluquería':{home:'agenda',nav:['agenda','familias'],costs:false,ag:'Peluquería',desc:'Sus citas del día, el checklist de cada baño y las fotos para la familia.'},
- 'Hotel y daycare':{home:'agenda',nav:['agenda','familias','conversaciones'],costs:false,ag:'Hotel y daycare',desc:'Huéspedes, entradas, salidas y paquetes de daycare.'}
+ 'Hotel y daycare':{home:'agenda',nav:['agenda','fidelizacion','familias','conversaciones'],costs:false,ag:'Hotel y daycare',desc:'Huéspedes, entradas, salidas y tarjetas de guardería.'}
 };
 const role=()=>ROLES[st.role]?st.role:'Dueño';
 const allowed=id=>{const n=ROLES[role()].nav;return !n||n.includes(id)};
@@ -936,26 +949,11 @@ function groomReport(p){
 /* ---------- Recomendados ---------- */
 (st.newFams||[]).forEach(f=>{if(!HHMAP[f.hh.id]){PF.households.push(f.hh);HHMAP[f.hh.id]=f.hh;f.pets.forEach(p=>{PF.pets.push(p);PETMAP[p.id]=p})}});
 const refList=()=>[...(st.newRefs||[]),...PF.referrals];
-Object.entries(st.refUsed||{}).forEach(([id,u])=>{const r=refList().find(x=>x.id===id);if(r&&r.status!=='Usó su beneficio'){r.status='Usó su beneficio';r.disc=u.disc;r.credit=u.credit;const f=HHMAP[r.from];if(f)f.refCredit=r2((f.refCredit||0)+u.credit)}});
-Object.keys(st.creditUsed||{}).forEach(h=>{if(HHMAP[h])HHMAP[h].refCredit=0});
-function vRecom(){
-  const L=refList();const used=L.filter(r=>r.status==='Usó su beneficio');
-  const ventas=L.reduce((a,r)=>a+(byHH[r.to]||[]).reduce((x,s)=>x+s.total,0),0);
-  const cred=used.reduce((a,r)=>a+r.credit,0),canj=used.filter(r=>r.redeemed).reduce((a,r)=>a+r.credit,0);
-  const rank={};L.forEach(r=>{rank[r.from]=(rank[r.from]||0)+1});const top=Object.entries(rank).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const ex=L.find(r=>r.status==='Usó su beneficio')||L[0];const exF=HHMAP[ex.from],exT=HHMAP[ex.to];
-  return `<div class="page-head"><div><span class="eyebrow">Crecimiento</span><h1>Recomendados</h1><p>El Mes del Recomendado de Pets Fashion sin tarjetas de papel. Cada familia tiene su código y su QR. Cuando llega alguien nuevo con ese código, el sistema aplica el descuento, le carga el crédito a quien recomendó y les avisa a los dos por WhatsApp.</p></div><div class="head-actions"><button class="btn pink" data-a="ref-new">${ic('plus')}Registrar cliente recomendado</button></div></div>${roleNote()}
-  <section class="kpis k5">${kpi('users','Clientes nuevos',String(L.length),'llegaron recomendados')}${kpi('cash','Lo que han comprado',money(ventas,1),'desde que llegaron')}${kpi('gift','Crédito entregado',money(cred),'a quienes recomendaron')}${kpi('check','Crédito canjeado',money(canj),'ya usado en servicios')}${kpi('heart','Mejor embajador',top[0]?esc(first(HHMAP[top[0][0]])):'·',top[0]?top[0][1]+' recomendados':'')}</section>
-  <section class="cols"><div class="card panel"><div class="panel-head"><div><h2>La regla de Pets Fashion</h2><p>La del Mes del Recomendado. Se cambia en un minuto si deciden otra.</p></div></div>
-   <div class="rules"><div><small>Cliente nuevo</small><b>50% en su primer servicio</b></div><div><small>Quien recomienda</small><b>Crédito del 25% del servicio</b></div><div><small>Aplica</small><b>Solo a clientes nuevos, por nombre o teléfono</b></div><div><small>Se usa en</small><b>Baños y servicios de Pets Fashion</b></div></div>
-   <div class="insight" style="margin-top:14px"><span class="ic">${ic('scissors')}</span><div><strong>Ejemplo con un baño de 30 dólares</strong><p style="margin-bottom:0">El cliente nuevo paga 15 y 7.50 quedan en el código de quien lo recomendó, listos para su próximo servicio.</p></div></div></div>
-   <div class="card panel"><div class="panel-head"><div><h2>Lo que reciben por WhatsApp</h2><p>Sale solo al registrar y al cobrar el primer servicio.</p></div></div><div class="auto-msg" style="display:grid;gap:8px"><div class="bub in" style="animation:none">Hola ${esc(first(exT))} 🐾 Te damos la bienvenida a Pets Fashion. Por venir de parte de ${esc(first(exF))} tienes 50% en tu primer servicio. Agenda tu cita por aquí mismo.<time>Al registrarse</time></div><div class="bub in" style="animation:none">Hola ${esc(first(exF))} 🐾 Gracias por recomendarnos. ${esc(first(exT))} ya usó su primer servicio y te cargamos ${money(ex.credit||7.5)} de crédito en tu código ${esc(exF.refCode)}.<time>Al cobrar el primer servicio</time></div></div></div></section>
-  <section style="margin-top:18px;display:grid;gap:18px"><div class="card"><div class="list-head"><h2 style="font-size:17px">Clientes que llegaron recomendados</h2><span class="muted" style="font-size:12.5px">El más reciente primero</span></div><div class="table-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Recomendó</th><th>Cliente nuevo</th><th>Primer servicio</th><th class="r">Pagó</th><th class="r">Crédito</th><th>Estado</th></tr></thead><tbody>${L.slice(0,25).map(r=>{const f=HHMAP[r.from],t=HHMAP[r.to];return `<tr class="click" data-a="fam" data-id="${t.id}"><td>${fd(r.t)}</td><td><b>${esc(f.name)}</b><br><small class="muted">${esc(r.code)}</small></td><td><div class="who">${t.pets.length?pstack(t.pets):''}<div><strong>${esc(t.name)}</strong><small>${esc(names(t.pets))}</small></div></div></td><td>${esc(CAT[r.svc].name)}</td><td class="r">${r.status==='Usó su beneficio'?money(r.price-r.disc):'·'}</td><td class="r">${r.credit?money(r.credit):'·'}</td><td><span class="chip ${r.status==='Usó su beneficio'?(r.redeemed?'ok':'pink'):'warn'}">${r.status==='Usó su beneficio'?(r.redeemed?'Crédito usado':'Crédito disponible'):'Falta su primer servicio'}</span></td></tr>`}).join('')}</tbody></table></div></div>
-  <div class="card panel"><div class="panel-head"><div><h2>Los que más recomiendan</h2><p>Se les puede dar un premio aparte.</p></div></div><div class="top-ref">${top.map(([h,n],i)=>{const x=HHMAP[h];return `<div class="tl-row" data-a="fam" data-id="${h}" style="cursor:pointer;grid-template-columns:28px 40px minmax(0,1fr) auto"><b class="num" style="font-size:18px">${i+1}</b>${pstack(x.pets.slice(0,1),'md')}<div class="tl-main"><strong>${esc(x.name)}</strong><small>${esc(x.refCode)} · crédito ${money(x.refCredit||0)}</small></div><span class="chip pink">${n} ${n===1?'cliente':'clientes'}</span></div>`}).join('')}</div></div></section>`;
-}
+Object.entries(st.refUsed||{}).forEach(([id,u])=>{const r=refList().find(x=>x.id===id);if(r&&r.status!=='Usó su beneficio'){r.status='Usó su beneficio';r.disc=u.disc;r.credit=u.credit;if(u.svc){r.svc=u.svc;r.price=CAT[u.svc].price}const f=HHMAP[r.from];if(f)f.refCredit=r2((f.refCredit||0)+u.credit)}});
+Object.entries(st.creditUsed||{}).forEach(([h,v])=>{if(HHMAP[h])HHMAP[h].refCredit=typeof v==='number'?Math.max(0,r2((HHMAP[h].refCredit||0)-v)):0});
 function refNew(){
   const ej=PF.referrals[0]?HHMAP[PF.referrals[0].from].refCode:'';
-  openOverlay(`<div class="drawer"><button class="x-btn" data-a="close">${ic('close')}</button><span class="eyebrow">Recomendados</span><h2 style="font-size:26px;margin-bottom:6px">Registrar cliente recomendado</h2><p class="muted" style="margin:0 0 20px">Se busca a quien recomendó por su código, su nombre o su teléfono. Pruebe con ${esc(ej)}.</p>
+  openOverlay(`<div class="drawer"><button class="x-btn" data-a="close">${ic('close')}</button><span class="eyebrow">Mes del Recomendado</span><h2 style="font-size:26px;margin-bottom:6px">Registrar cliente recomendado</h2><p class="muted" style="margin:0 0 20px">Para cuando llega directo a la tienda con el cupón. Se busca a quien recomendó por su código, su nombre o su teléfono. Pruebe con ${esc(ej)}.</p>
   <div class="form-grid"><div class="field" style="grid-column:1/-1"><label>Código, nombre o teléfono de quien recomienda</label><input class="input" id="rf-code" autocomplete="off"></div><div id="rf-found" style="grid-column:1/-1"></div>
   <div class="field"><label>Nombre del cliente nuevo</label><input class="input" id="rf-name" autocomplete="off"></div><div class="field"><label>Teléfono</label><input class="input" id="rf-phone" autocomplete="off" inputmode="tel"></div>
   <div class="field"><label>Nombre de la mascota</label><input class="input" id="rf-pet" autocomplete="off"></div><div class="field"><label>Especie</label><select class="select" id="rf-sp"><option>Perro</option><option>Gato</option></select></div></div>
@@ -976,6 +974,315 @@ function refSave(){
   save();bump();closeOverlay();rerender();toast('Registrado. '+first(hh)+' tiene 50% en su primer servicio y '+first(f)+' recibe crédito cuando lo use. Se les avisó a los dos por WhatsApp');
 }
 function refPending(hid){return refList().find(r=>r.to===hid&&r.status==='Registrado')}
+
+/* ---------- Fidelización ---------- */
+const GRUPOS={'Baño':['v1','v2','v3','v4','v5'],'Peluquería':['v6','v7','v8','v22'],'Guardería':['v16','v17','v23','v24'],'Consulta o vacunación':['v9','v10','v11','v12'],'Productos de tienda':null};
+const REF_G=['Peluquería','Baño','Guardería','Consulta o vacunación'];
+const inGrupos=(id,gs)=>gs.some(g=>g==='Productos de tienda'?!!(CAT[id]&&CAT[id].kind==='producto'&&!CAT[id].gift):!!(GRUPOS[g]&&GRUPOS[g].includes(id)));
+const refOK=id=>inGrupos(id,REF_G);
+const isOwner=()=>role()==='Dueño';
+
+/* tarjetas de guardería con lo guardado en el prototipo */
+(st.dcNew||[]).forEach(c=>{if(!PF.dcards.find(x=>x.id===c.id))PF.dcards.unshift(JSON.parse(JSON.stringify(c)))});
+Object.entries(st.dcUse||{}).forEach(([id,arr])=>{const c=PF.dcards.find(x=>x.id===id);if(c)arr.forEach(u=>{const k=c.used.find(x=>x.t===u.t&&x.h===u.h);if(k)k.obs=u.obs;else c.used.push(Object.assign({},u))})});
+PF.dcards.forEach(c=>{const h=HHMAP[c.hh];if(h){h.daycare=h.daycare||{};h.daycare.left=c.days-c.used.length;h.daycare.card=c.id}});
+const dcLeft=c=>Math.max(0,c.days-c.used.length);
+const dcToday=c=>c.used.some(u=>u.t>=TODAY-DAY/2);
+function dcState(c){if(dcLeft(c)<=0)return 'Terminada';if(c.vence<TODAY)return 'Vencida';if(dcLeft(c)<=2||dd(c.vence)<=3)return 'Por renovar';return 'Activa'}
+const dcChip=c=>{const s=dcState(c);return `<span class="chip ${s==='Activa'?'ok':s==='Por renovar'?'warn':'bad'}">${s}</span>`};
+const PLANCAT={full:'v23',medio:'v17',express:'v24'};
+
+function fidHead(){
+  const tabs=role()==='Hotel y daycare'?[['dc','Tarjeta de guardería']]:[['estrategias','Estrategias'],['recom','Mes del Recomendado'],['dc','Tarjeta de guardería']];
+  return `<div class="page-head"><div><span class="eyebrow">Crecimiento</span><h1>Fidelización de clientes</h1><p>Las estrategias para que las familias vuelvan y traigan a otras. Funcionan solas, sin tarjetas de papel, y cada familia ve en su celular lo que tiene disponible.</p></div>${isOwner()?`<div class="head-actions"><button class="btn pink" data-a="st-new">${ic('plus')}Crear nueva estrategia</button></div>`:''}</div>${roleNote()}
+  ${tabs.length>1?`<div class="tabs" style="margin-bottom:18px">${tabs.map(([k,l])=>`<button class="tab ${fidTab===k?'on':''}" data-a="fid-tab" data-t="${k}">${l}</button>`).join('')}</div>`:''}`;
+}
+function vFid(){
+  if(role()==='Hotel y daycare')fidTab='dc';
+  if(fidTab==='recom')return fidHead()+recomBody();
+  if(fidTab==='dc')return fidHead()+dcBody();
+  const L=refList();const cred=L.filter(r=>r.status==='Usó su beneficio').reduce((a,r)=>a+r.credit,0);
+  const act=PF.dcards.filter(c=>['Activa','Por renovar'].includes(dcState(c)));
+  const usadosMes=PF.dcards.reduce((a,c)=>a+c.used.filter(u=>u.t>=TODAY-30*DAY).length,0);
+  const card=o=>`<div class="card strat ${o.paused?'paused':''}"><div class="strat-top"><span class="ic">${ic(o.icon)}</span><div><h3>${esc(o.name)}</h3><small>${esc(o.tipo)}</small></div><span class="chip ${o.paused?'':'ok'}">${o.paused?'Pausada':'Activa'}</span></div><p>${esc(o.desc)}</p><div class="strat-kpis">${o.kpis.map(k=>`<div><b>${k[0]}</b><small>${k[1]}</small></div>`).join('')}</div><div class="strat-acts">${o.acts}</div></div>`;
+  const base=[
+   {name:'Mes del Recomendado',tipo:'Recompensa por recomendar',icon:'gift',desc:'El cliente nuevo tiene 50% en su primer servicio. Quien lo recomienda recibe de crédito el 50% de lo que pagó el nuevo, para baño, peluquería, guardería, consulta o vacunación.',kpis:[[String(L.length),'clientes nuevos'],[money(cred),'crédito abonado'],[String(PF.households.filter(h=>h.refCredit>0).length),'familias con crédito']],acts:`<button class="btn ghost sm" data-a="fid-tab" data-t="recom">Ver detalle${ic('arrow')}</button><button class="btn ghost sm" data-a="refsim">${ic('phone')}Cómo llega un recomendado</button>`},
+   {name:'Tarjeta de guardería',tipo:'Plan prepagado',icon:'sun',desc:'Plan full mes de 30 días, Plan medio de 15 días y Plan Express de 3 días. Cada día se marca con un toque y la familia recibe por WhatsApp cuántos le quedan y cuándo vence.',kpis:[[String(act.length),'tarjetas activas'],[String(usadosMes),'días usados en 30 días'],[String(PF.dcards.length-act.length),'terminadas o vencidas']],acts:`<button class="btn ghost sm" data-a="fid-tab" data-t="dc">Ver tarjetas${ic('arrow')}</button><button class="btn ghost sm" data-a="dc-sell">${ic('plus')}Vender un plan</button>`}
+  ];
+  const mine=(st.strategies||[]).map(s=>({name:s.name,tipo:s.tipoL,icon:s.icon,paused:s.paused,desc:stratDesc(s),kpis:[[String(segCount(s.seg)),'familias a las que aplica'],[fd(s.hasta),'vence'],[String(s.usos||0),s.usos===1?'uso en caja':'usos en caja']],acts:`<button class="btn ghost sm" data-a="st-view" data-id="${s.id}">${ic('phone')}Ver mensaje</button>${isOwner()?`<button class="btn ghost sm" data-a="st-toggle" data-id="${s.id}">${s.paused?'Activar':'Pausar'}</button>`:''}`}));
+  return fidHead()+`<section class="strat-grid">${[...base,...mine].map(card).join('')}${isOwner()?`<button class="strat-new" data-a="st-new"><span class="ic">${ic('plus')}</span><b>Crear nueva estrategia</b><span>Cupón de descuento, plan prepagado, puntos, regalo de cumpleaños o recompensa por recomendar. Se arma aquí mismo y se activa en un minuto.</span></button>`:''}</section>`;
+}
+
+/* ---------- Mes del Recomendado ---------- */
+const POLITICAS=[
+ ['Pide tu cita por WhatsApp anunciando tu cupón','El cliente nuevo escribe con el código del cupón. El sistema lo reconoce y lo agenda en el mismo chat.'],
+ ['Sujeto a disponibilidad','Solo le ofrece los espacios libres de la agenda real.'],
+ ['Solo para clientes nuevos','Revisa el teléfono y el nombre contra la base de clientes. Si ya es cliente, no aplica.'],
+ ['Solo el primer servicio escogido','El 50% sale una sola vez en caja y el cupón queda marcado como usado.'],
+ ['El crédito se abona a la cuenta de quien recomienda','Se abona solo al cobrar, y a quien recomendó le llega el aviso por WhatsApp con su saldo.'],
+ ['Válido solo en los servicios del cupón','En caja el crédito solo descuenta baño, peluquería, guardería, consulta o vacunación. Nunca productos ni efectivo.'],
+ ['El cupón lleva el nombre, la cédula y el teléfono de quien recomienda','El cupón digital ya lleva su código. Para encontrarlo basta el código, el nombre o el teléfono.']
+];
+function recomBody(){
+  const L=refList();const used=L.filter(r=>r.status==='Usó su beneficio');
+  const ventas=L.reduce((a,r)=>a+(byHH[r.to]||[]).reduce((x,s)=>x+s.total,0),0);
+  const cred=used.reduce((a,r)=>a+r.credit,0),canj=used.filter(r=>r.redeemed).reduce((a,r)=>a+r.credit,0);
+  const rank={};L.forEach(r=>{rank[r.from]=(rank[r.from]||0)+1});const top=Object.entries(rank).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const ex=used[0]||L[0];const exF=HHMAP[ex.from],exT=HHMAP[ex.to];
+  return `<div class="card callout fid-call"><span class="ic">${ic('gift')}</span><div><b>El Mes del Recomendado de Pets Fashion, sin cupones de papel</b><p>Cada familia tiene su cupón digital con su código. El cliente nuevo lo trae por WhatsApp, el sistema aplica el 50% en caja y le abona el crédito a quien lo recomendó.</p></div><div class="fid-call-btns"><button class="btn pink sm" data-a="refsim">${ic('phone')}Ver cómo llega un recomendado</button><button class="btn ghost sm" data-a="ref-new">${ic('plus')}Registrar en recepción</button></div></div>
+  <section class="kpis k5">${kpi('users','Clientes nuevos',String(L.length),'llegaron recomendados')}${kpi('cash','Lo que han comprado',money(ventas,1),'desde que llegaron')}${kpi('gift','Crédito abonado',money(cred),'a quienes recomendaron')}${kpi('check','Crédito usado',money(canj),'ya canjeado en servicios')}${kpi('heart','Mejor embajador',top[0]?esc(first(HHMAP[top[0][0]])):'·',top[0]?top[0][1]+' recomendados':'')}</section>
+  <section class="cols"><div class="card panel"><div class="panel-head"><div><h2>Las reglas del cupón</h2><p>Las mismas del cupón impreso que usan hoy.</p></div></div>
+   <div class="rules"><div><small>Cliente nuevo</small><b>50% en su primer servicio</b></div><div><small>Lo escoge entre</small><b>Peluquería, baño, plan de guardería, consulta o vacunación</b></div><div><small>Quien recomienda</small><b>Crédito del 50% de lo que pagó el nuevo</b></div><div><small>El crédito se usa en</small><b>Baño, peluquería, guardería, consulta o vacunación</b></div></div>
+   <div class="insight" style="margin-top:14px"><span class="ic">${ic('scissors')}</span><div><strong>Ejemplo con un baño mediano de ${money(CAT.v4.price)}</strong><p style="margin-bottom:0">El cliente nuevo paga ${money(CAT.v4.price/2)}. Quien lo recomendó recibe ${money(CAT.v4.price/4)} de crédito, el 50% de lo que pagó el nuevo.</p></div></div></div>
+   <div class="card panel"><div class="panel-head"><div><h2>Lo que reciben por WhatsApp</h2><p>Sale solo, sin que nadie lo escriba.</p></div></div><div class="auto-msg" style="display:grid;gap:8px"><div class="bub in" style="animation:none">Hola ${esc(first(exT))} 🐾 Te damos la bienvenida a Pets Fashion. Ya validé el cupón de ${esc(first(exF))}. Tienes 50% en tu primer servicio de peluquería, baño, plan de guardería, consulta o vacunación. Cuál quieres usar?<time>Cuando escribe con el código</time></div><div class="bub in" style="animation:none">Hola ${esc(first(exF))} 🐾 ${esc(first(exT))} usó tu cupón del Mes del Recomendado. Te abonamos ${money(ex.credit||CAT.v4.price/4)} de crédito para baño, peluquería, guardería, consulta o vacunación.<time>Al cobrar su primer servicio</time></div></div></div></section>
+  <section class="card panel" style="margin-top:18px"><div class="panel-head"><div><h2>Las políticas del cupón y cómo las cumple el sistema</h2><p>Nadie tiene que acordarse de las reglas. El sistema no deja aplicarlas mal.</p></div></div><div class="pol">${POLITICAS.map(p=>`<div><span>${ic('check')}</span><b>${esc(p[0])}</b><p>${esc(p[1])}</p></div>`).join('')}</div></section>
+  <section style="margin-top:18px;display:grid;grid-template-columns:minmax(0,1fr);gap:18px"><div class="card"><div class="list-head"><h2 style="font-size:17px">Clientes que llegaron recomendados</h2><span class="muted" style="font-size:12.5px">El más reciente primero</span></div><div class="table-wrap"><table class="t"><thead><tr><th>Fecha</th><th>Recomendó</th><th>Cliente nuevo</th><th>Primer servicio</th><th class="r">Pagó</th><th class="r">Crédito</th><th>Estado</th></tr></thead><tbody>${L.slice(0,25).map(r=>{const f=HHMAP[r.from],t=HHMAP[r.to];return `<tr class="click" data-a="fam" data-id="${t.id}"><td>${fd(r.t)}</td><td><b>${esc(f.name)}</b><br><small class="muted">${esc(r.code)}</small></td><td><div class="who">${t.pets.length?pstack(t.pets):''}<div><strong>${esc(t.name)}</strong><small>${esc(names(t.pets))}</small></div></div></td><td>${esc(CAT[r.svc].name)}</td><td class="r">${r.status==='Usó su beneficio'?money(r.price-r.disc):'·'}</td><td class="r">${r.credit?money(r.credit):'·'}</td><td><span class="chip ${r.status==='Usó su beneficio'?(r.redeemed?'ok':'pink'):'warn'}">${r.status==='Usó su beneficio'?(r.redeemed?'Crédito usado':'Crédito disponible'):'Falta su primer servicio'}</span></td></tr>`}).join('')}</tbody></table></div></div>
+  <div class="card panel"><div class="panel-head"><div><h2>Los que más recomiendan</h2><p>Se les puede dar un premio aparte.</p></div></div><div class="top-ref">${top.map(([h,n],i)=>{const x=HHMAP[h];return `<div class="tl-row" data-a="fam" data-id="${h}" style="cursor:pointer;grid-template-columns:28px 40px minmax(0,1fr) auto"><b class="num" style="font-size:18px">${i+1}</b>${pstack(x.pets.slice(0,1),'md')}<div class="tl-main"><strong>${esc(x.name)}</strong><small>${esc(x.refCode)} · crédito ${money(x.refCredit||0)}</small></div><span class="chip pink">${n} ${n===1?'cliente':'clientes'}</span></div>`}).join('')}</div></div></section>`;
+}
+
+/* ---------- Tarjeta de guardería ---------- */
+let dcF='Activas';
+function dcSlots(c,big){
+  const used=c.used.slice().sort((a,b)=>a.t-b.t);
+  return `<div class="dc-slots n${c.days}${big?' big':''}">${Array.from({length:c.days},(_,i)=>{const u=used[i];const td=u&&u.t>=TODAY-DAY/2;return `<span class="${u?'on':''}${td?' today':''}" title="${u?fdl(u.t)+' · '+esc(u.h):'Día '+(i+1)+' disponible'}"><i>${i+1}</i>${u&&big?`<b>${fd(u.t)}</b>`:''}</span>`}).join('')}</div>`;
+}
+function dcMini(c){
+  const p=PETMAP[c.pet],h=HHMAP[c.hh];
+  return `<button class="dc-mini" data-a="dc-open" data-id="${c.id}"><div class="dc-mini-top">${pav(p,'md')}<div><b>${esc(p.name)}</b><small>${esc(h.name)}</small></div>${dcChip(c)}</div><div class="dc-plan">${esc(PF.DCPLAN[c.plan].name)} · ${c.days} días</div>${dcSlots(c)}<div class="dc-mini-foot"><span><b>${dcLeft(c)}</b> ${dcLeft(c)===1?'día disponible':'días disponibles'}</span><span>Vence ${fd(c.vence)}</span></div></button>`;
+}
+function dcBody(){
+  const all=PF.dcards.slice().sort((a,b)=>(dcToday(b)?1:0)-(dcToday(a)?1:0)||dcLeft(a)-dcLeft(b));
+  const act=c=>['Activa','Por renovar'].includes(dcState(c));
+  const list=all.filter(c=>dcF==='Todas'||(dcF==='Activas'?act(c):!act(c)||dcState(c)==='Por renovar'));
+  return `<section class="kpis k4">${kpi('sun','Tarjetas activas',String(all.filter(act).length),'perritos con plan vigente')}${kpi('calendar','Días usados en 30 días',String(all.reduce((a,c)=>a+c.used.filter(u=>u.t>=TODAY-30*DAY).length,0)),'marcados en la entrada')}${kpi('bell','Por renovar',String(all.filter(c=>dcState(c)==='Por renovar').length),'les quedan 2 días o vencen pronto')}${kpi('receipt','Terminadas o vencidas',String(all.filter(c=>!act(c)).length),'con aviso de renovación enviado')}</section>
+  <section class="plans">${['full','medio','express'].map(k=>{const P=PF.DCPLAN[k],sv=CAT[PLANCAT[k]];return `<div class="card plan"><span class="eyebrow">Guardería · Day care</span><h3>${P.name}</h3><b class="num">${money(sv.price)}</b><p>${P.days} días · vence a los ${P.vig} días</p><small>Precio y vigencia de ejemplo</small></div>`}).join('')}<div class="card plan rules-plan"><span class="eyebrow">Avisos automáticos</span><ul><li>Cada día marcado, la familia recibe cuántos días le quedan</li><li>Con 2 días disponibles, le llega el link de Yappy para renovar</li><li>Tres días antes de vencer, un recordatorio</li></ul></div></section>
+  <section class="card"><div class="list-head"><div class="tabs">${[['Activas','Activas'],['Renovar','Por renovar o terminadas'],['Todas','Todas']].map(([k,l])=>`<button class="tab ${dcF===k?'on':''}" data-a="dc-f" data-f="${k}">${l}</button>`).join('')}</div><button class="btn primary sm" data-a="dc-sell">${ic('plus')}Vender un plan</button></div>
+  <div class="dc-grid">${list.map(dcMini).join('')||'<div class="empty">No hay tarjetas con este filtro.</div>'}</div></section>`;
+}
+function dcPaper(c){
+  const p=PETMAP[c.pet],h=HHMAP[c.hh];const obs=c.used.filter(u=>u.obs).sort((a,b)=>b.t-a.t);
+  return `<div class="dc-paper"><div class="dc-paper-head"><img src="./assets/pf-mark.png" alt=""><div><b>PetsFashion</b><small>Guardería · Day care</small></div><em>${esc(PF.DCPLAN[c.plan].name)}<br>${c.days} días</em></div>
+  <div class="dc-row"><small>Cliente</small><b>${esc(h.name)}</b></div><div class="dc-row"><small>Mascota</small><b>${esc(p.name)} · ${esc(p.breed)}</b></div>
+  <div class="dc-row two"><div><small>Fecha de inicio</small><b>${fdl(c.start)}</b></div><div><small>Vencimiento</small><b>${fdl(c.vence)}</b></div></div>
+  ${dcSlots(c,true)}
+  <div class="dc-obs"><small>Observaciones</small>${obs.length?obs.slice(0,3).map(u=>`<p><b>${fd(u.t)}</b> ${esc(u.obs)}</p>`).join(''):'<p class="muted">Sin observaciones</p>'}</div></div>`;
+}
+function openCard(id,sent){
+  const c=PF.dcards.find(x=>x.id===id);if(!c)return;const p=PETMAP[c.pet],h=HHMAP[c.hh];const left=dcLeft(c);
+  const msg=sent?`Hola ${first(h)} 🐾 ${p.name} ya llegó a la guardería a las ${sent}. Le ${left===1?'queda 1 día':'quedan '+left+' días'} de su ${PF.DCPLAN[c.plan].name}, la tarjeta vence el ${fdl(c.vence)}.${left<=2?' Si quieres renovarlo, te mando el link de Yappy por aquí mismo.':''}`:'';
+  const canMark=!dcToday(c)&&left>0&&c.vence>=TODAY;
+  openOverlay(`<div class="modal" style="max-width:1000px"><button class="x-btn" data-a="close">${ic('close')}</button><div class="dc-modal"><div class="dc-paper-wrap">${dcPaper(c)}</div><div class="dc-side"><span class="eyebrow">Tarjeta de guardería digital</span><h2>${esc(p.name)} · ${esc(PF.DCPLAN[c.plan].name)}</h2><p class="dc-sum">${dcChip(c)}<span><b>${left}</b> ${left===1?'día disponible':'días disponibles'} de ${c.days} · vence ${rel(dd(c.vence))}</span></p>
+  <div class="dc-acts">${dcToday(c)?`<span class="sent-mark">${ic('check')}Ya se marcó la entrada de hoy</span>`:canMark?`<button class="btn pink big" data-a="dc-in" data-id="${c.id}">${ic('check')}Marcar la entrada de hoy</button>`:''}
+  <div class="dc-obs-in"><input class="input" id="dc-obs" placeholder="Observación del día, por ejemplo comió todo" autocomplete="off"><button class="btn ghost" data-a="dc-obs" data-id="${c.id}">Guardar</button></div>
+  <div class="dc-two"><button class="btn ghost" data-a="dc-renew" data-id="${c.id}">${ic('reset')}Renovar plan</button><button class="btn ghost" data-a="portal" data-id="${h.id}">${ic('phone')}Lo que ve la familia</button></div></div>
+  ${msg?`<div class="section-title">Le llegó a ${esc(first(h))} por WhatsApp</div><div class="auto-msg"><div class="bub in" style="animation:none;max-width:100%">${esc(msg)}<time>${esc(sent)}</time></div></div>`:`<div class="section-title">Así funciona</div><ul class="dc-how"><li>Quien recibe al perrito toca Marcar la entrada. El día queda escrito con la fecha y la hora.</li><li>La familia recibe al momento cuántos días le quedan y cuándo vence.</li><li>Con 2 días disponibles, el sistema le manda solo el link de Yappy para renovar.</li><li>La familia ve su tarjeta cuando quiera desde su celular.</li></ul>`}</div></div></div>`,'center');
+}
+function dcIn(id){
+  const c=PF.dcards.find(x=>x.id===id);if(!c||dcToday(c)||dcLeft(c)<=0)return;
+  const hr=hhmm(PF.hourNow);const u={t:TODAY,h:hr,obs:''};c.used.push(u);st.dcUse=st.dcUse||{};(st.dcUse[id]=st.dcUse[id]||[]).push(Object.assign({},u));
+  const hh=HHMAP[c.hh];hh.daycare.left=dcLeft(c);save();bump();openCard(id,hr);toast('Entrada marcada. A '+first(hh)+' le llegó el aviso por WhatsApp');
+}
+function dcObs(id){
+  const c=PF.dcards.find(x=>x.id===id);const inp=document.getElementById('dc-obs');const v=inp?inp.value.trim():'';if(!c)return;if(!v){toast('Escriba la observación primero');return}
+  const u=c.used.find(x=>x.t>=TODAY-DAY/2)||c.used.slice().sort((a,b)=>b.t-a.t)[0];if(!u){toast('La observación se guarda en un día marcado. Marque la entrada primero');return}
+  u.obs=v;st.dcUse=st.dcUse||{};const arr=(st.dcUse[id]=st.dcUse[id]||[]);const k=arr.find(x=>x.t===u.t&&x.h===u.h);if(k)k.obs=v;else arr.push(Object.assign({},u));
+  save();openCard(id);toast('Observación guardada en la tarjeta de '+PETMAP[c.pet].name);
+}
+function dcTicket(hid,pid,plan,note){
+  st.recep=st.recep||[];const t={id:'RQ-DC'+Date.now(),hh:hid,pets:[pid],area:'Guardería',who:'Guardería',time:nowLabel(),lines:[{id:PLANCAT[plan],q:1,pets:[pid]}],note};
+  st.recep.push(t);save();bump();return t;
+}
+function dcRenew(id){
+  const c=PF.dcards.find(x=>x.id===id);if(!c)return;
+  dcTicket(c.hh,c.pet,c.plan,'Renovación del '+PF.DCPLAN[c.plan].name);closeOverlay();rerender();toast('La renovación llegó a recepción. Al cobrarla se crea la tarjeta nueva');
+}
+function dcSell(){
+  const fams=PF.households.filter(h=>!h.lostAt&&h.pets&&petsOf(h).some(p=>p.sp==='perro')).sort((a,b)=>a.name.localeCompare(b.name));
+  openOverlay(`<div class="drawer"><button class="x-btn" data-a="close">${ic('close')}</button><span class="eyebrow">Tarjeta de guardería</span><h2 style="font-size:26px;margin-bottom:6px">Vender un plan</h2><p class="muted" style="margin:0 0 18px">La cuenta llega a recepción. Al cobrarla, la tarjeta digital se activa sola y la familia la recibe por WhatsApp.</p>
+  <div class="form-grid"><div class="field" style="grid-column:1/-1"><label>Familia</label><select class="select" id="ds-h">${fams.map(h=>`<option value="${h.id}">${esc(h.name)} · ${esc(names(h.pets.filter(id=>PETMAP[id].sp==='perro')))}</option>`).join('')}</select></div></div>
+  <div class="section-title">Plan</div><div class="plan-pick">${['full','medio','express'].map(k=>`<label><input type="radio" name="ds-p" value="${k}" ${k==='medio'?'checked':''}><span><b>${PF.DCPLAN[k].name}</b><small>${PF.DCPLAN[k].days} días · ${money(CAT[PLANCAT[k]].price)}</small></span></label>`).join('')}</div>
+  <div class="drawer-actions" style="margin-top:20px"><button class="btn pink" data-a="dc-sell-save">${ic('check')}Enviar a cobrar en recepción</button><button class="btn ghost" data-a="close">Cancelar</button></div></div>`);
+}
+function dcSellSave(){
+  const h=HHMAP[document.getElementById('ds-h').value];const plan=(document.querySelector('input[name=ds-p]:checked')||{}).value||'medio';
+  const p=petsOf(h).find(x=>x.sp==='perro');if(!p)return;
+  dcTicket(h.id,p.id,plan,'Plan nuevo de guardería');closeOverlay();rerender();toast(PF.DCPLAN[plan].name+' de '+p.name+' enviado a recepción. Al cobrarlo se activa la tarjeta');
+}
+function dcCreateFromSale(sale){
+  sale.lines.forEach(l=>{const it=CAT[l.id];if(!it||!it.plan)return;const P=PF.DCPLAN[it.plan];const h=HHMAP[sale.hh];if(!h||!h.pets||!h.pets.length)return;
+    const pid=(l.pets||[]).find(x=>PETMAP[x]&&PETMAP[x].sp==='perro')||h.pets.find(x=>PETMAP[x].sp==='perro')||h.pets[0];
+    for(let q=0;q<l.q;q++){const c={id:'DCN'+Date.now()+q+l.id,hh:sale.hh,pet:pid,plan:it.plan,days:P.days,start:TODAY,vence:TODAY+P.vig*DAY,used:[]};
+      PF.dcards.unshift(c);st.dcNew=st.dcNew||[];st.dcNew.push(c);h.daycare={left:c.days,card:c.id}}
+    setTimeout(()=>toast('Tarjeta de guardería de '+PETMAP[pid].name+' activa. A '+first(h)+' le llegó por WhatsApp'),3700)});
+}
+function famBenefits(hh){
+  const cards=PF.dcards.filter(c=>c.hh===hh.id);if(!cards.length&&!hh.refCode)return '';
+  return `<div class="section-title">Beneficios</div><div class="fam-ben">${cards.slice(0,2).map(dcMini).join('')}${hh.refCode?`<div class="card ben-ref"><small>Mes del Recomendado</small><b>${money(hh.refCredit||0)}</b><span>de crédito para servicios</span><em>Su código ${esc(hh.refCode)}</em></div>`:''}</div>`;
+}
+
+/* ---------- Lo que ve la familia en su celular ---------- */
+function showPortal(hid,credit){
+  const h=HHMAP[hid];const cr=credit!=null?credit:(h&&h.refCredit)||0;if(!h||!h.pets)return;const cards=PF.dcards.filter(c=>c.hh===hid&&c.vence>=TODAY-20*DAY).slice(0,2);
+  const fg=PF.foodGroups.filter(g=>g.hh===hid&&g.buys.length).slice(0,2);const ap=allAppts().filter(a=>a.hh===hid).slice(0,2);
+  const body=`<div class="pt-head"><img src="./assets/pf-mark.png" alt=""><div><b>Mi cuenta</b><small>Pets Fashion</small></div></div><p class="pt-hi">Hola ${esc(first(h))} 🐾</p>
+  ${cards.map(c=>`<div class="pt-card"><small>Guardería de ${esc(PETMAP[c.pet].name)}</small><b>${esc(PF.DCPLAN[c.plan].name)}</b>${dcSlots(c)}<p>Te ${dcLeft(c)===1?'queda 1 día':'quedan '+dcLeft(c)+' días'} · vence el ${fdl(c.vence)}</p>${dcLeft(c)<=2?'<span class="pt-btn">Renovar con Yappy</span>':''}</div>`).join('')}
+  <div class="pt-card"><small>Tu crédito por recomendar</small><b class="num">${money(cr)}</b><p>Para baño, peluquería, guardería, consulta o vacunación.</p></div>
+  ${h.refCode?`<div class="pt-card pt-coupon"><small>Tu cupón para recomendar</small><b>50% en su primer servicio</b><p>Tu amigo lo usa en peluquería, baño, plan de guardería, consulta o vacunación. Tú recibes de crédito el 50% de lo que pague.</p><div class="pt-code">${qrSVG(h.refCode)}<div><small>Tu código</small><b>${esc(h.refCode)}</b></div></div><span class="pt-btn">Compartir por WhatsApp</span></div>`:''}
+  ${fg.map(g=>{const left=Math.round(dd(g.buys[g.buys.length-1]+cycleOf(g)*DAY));return `<div class="pt-card"><small>Alimento de ${esc(names(g.pets))}</small><b>${esc(shortName(CAT[g.product]))}</b><p>${left>1?'Le alcanza para unos '+left+' días':'Ya se le debe estar acabando'}</p><span class="pt-btn">Pedir con delivery</span></div>`}).join('')}
+  ${ap.length?`<div class="pt-card"><small>Próximas citas</small>${ap.map(a=>`<p><b>${esc(a.label)}</b> · ${esc(a.svc)}</p>`).join('')}</div>`:''}`;
+  openOverlay(`<div class="modal"><button class="x-btn" data-a="close">${ic('close')}</button><div class="sim"><div class="sim-left"><div class="phone"><div class="screen"><div class="wa-status"><span>9:41</span><span>●●● 5G</span></div><div class="portal">${body}</div></div></div></div>
+  <div class="sim-right"><div><span class="eyebrow">Lo que ve la familia en su celular</span><h2>${esc(h.name)}</h2></div><p>Le llega el link por WhatsApp y lo abre sin descargar nada. Siempre sabe qué tiene disponible.</p><ul class="dc-how"><li>Los días que le quedan de guardería y cuándo vence la tarjeta.</li><li>El crédito que ganó por recomendar y dónde lo puede usar.</li><li>Su propio cupón con su código, listo para compartir con un amigo.</li><li>Cuándo se le acaba el alimento, con un botón para pedirlo.</li><li>Sus próximas citas.</li></ul><div class="sim-hint">${ic('spark')}<span>Se actualiza solo con lo que pasa en caja, en la guardería y en la agenda. La familia también puede preguntarlo por WhatsApp y el asistente le contesta con estos mismos datos.</span></div></div></div></div>`,'center');
+}
+
+/* ---------- Cómo llega un cliente recomendado ---------- */
+let rs=null;
+function openRefSim(){
+  const r=PF.referrals.find(x=>x.status==='Usó su beneficio'&&HHMAP[x.from].refCode)||PF.referrals[0];const ref=HHMAP[r.from];
+  rs={ref,svc:null,item:null,slot:null,busy:false,nuevo:'Carla',mascota:'Rocco'};
+  const steps=[['gift',first(ref)+' comparte su cupón digital','Desde su celular se lo manda a una amiga, con su código '+ref.refCode+'. Ya no hace falta el cupón de papel.'],['chat','La clienta nueva escribe con el código','El sistema valida el código, revisa que sea clienta nueva y la registra como recomendada por '+first(ref)+'.'],['scissors','Escoge su servicio','Solo ve los servicios del cupón y los espacios libres de la agenda.'],['calendar','La cita queda agendada','Entra a la agenda sin que nadie la copie.'],['cash','En caja el 50% se aplica solo','Solo sobre ese primer servicio. No se puede usar en productos ni en otra visita.'],['heart','A '+first(ref)+' se le abona el crédito','El 50% de lo que pagó la clienta nueva queda en su cuenta y le llega el aviso.']];
+  openOverlay(`<div class="modal"><button class="x-btn" data-a="close">${ic('close')}</button><div class="sim"><div class="sim-left"><div class="phone"><div class="screen"><div class="wa-status"><span>9:41</span><span>●●● 5G</span></div><div class="wa-head"><img src="./assets/pf-mark.png" alt=""><div><b>Pets Fashion</b><small>Cuenta de empresa</small></div></div><div class="wa-body" id="wa-body"><div class="wa-day">HOY</div></div><div class="wa-input"><span>Mensaje</span><i></i></div></div></div></div>
+  <div class="sim-right"><div><span class="eyebrow">Mes del Recomendado · lo que ve la clienta nueva en su teléfono</span><h2>Así llega un cliente recomendado</h2></div><p>${esc(ref.name)} le pasó su cupón a ${rs.nuevo}, una amiga que nunca ha ido a Pets Fashion. Ella escribe al WhatsApp de la tienda.</p><div class="sim-hint">${ic('phone')}<span>Toque los botones del mensaje en el teléfono como si fuera la clienta nueva.</span></div>
+  <div class="steps" id="sim-steps">${steps.map((s,i)=>`<div class="step" data-i="${i}"><span class="dot">${ic(s[0])}</span><div><strong>${esc(s[1])}</strong><p>${esc(s[2])}</p></div></div>`).join('')}</div><div id="sim-note"></div><div class="sim-foot" id="sim-foot"><button class="btn ghost" data-a="refsim">${ic('reset')}Empezar de nuevo</button></div></div></div></div>`,'center');
+  rsLight(0);
+  rsOut(`<div class="tpl-card cp-card"><span class="cp-pct">50%</span><div><b>Cupón Mes del Recomendado</b><small>De parte de ${esc(ref.name)} · ${esc(ref.refCode)}</small></div></div>Hola, quiero usar el cupón que me pasó ${esc(first(ref))} para mi perro ${rs.mascota}`);
+  rs.busy=true;setTimeout(()=>{if(!rs)return;simBubble(`<div class="wa-sys">${rs.nuevo} es clienta nueva · cupón de ${esc(first(ref))} validado</div>`);rsBot(`Hola ${rs.nuevo} 🐾 Te damos la bienvenida a Pets Fashion. Ya validé el cupón de ${esc(first(ref))}. Como eres clienta nueva, tienes 50% en tu primer servicio. Cuál quieres usar?`,['Peluquería','Baño','Plan de guardería','Consulta o vacunación'],'svc',1,true)},500);
+}
+function rsLight(n){document.querySelectorAll('#sim-steps .step').forEach((el,i)=>{el.classList.toggle('on',i<=n);el.classList.toggle('now',i===n)})}
+function rsOut(html){simBubble(`<div class="bub out">${html}<time>${nowLabel()}</time></div>`)}
+function rsBot(text,btns,key,light,delay){
+  if(!rs)return;rs.busy=true;
+  const go=()=>{if(!rs)return;simBubble(`<div class="bub in">${text}<time>${nowLabel()}</time></div>`);if(btns&&btns.length)simBubble(`<div class="wa-btns" id="rs-${key}">${btns.map((b,i)=>`<button data-a="rs" data-k="${key}" data-i="${i}">${esc(b)}</button>`).join('')}</div>`);if(light!=null)rsLight(light);rs.busy=false};
+  if(!delay){go();return}
+  setTimeout(()=>{simBubble('<div class="typing" id="typing"><i></i><i></i><i></i></div>');setTimeout(()=>{const t=document.getElementById('typing');if(t)t.remove();go()},800)},300);
+}
+function rsTap(key,i){
+  if(!rs||rs.busy)return;const box=document.getElementById('rs-'+key);const b=box&&box.children[i];if(!b||box.classList.contains('used'))return;box.classList.add('used');b.classList.add('picked');const label=b.textContent;rsOut(esc(label));
+  if(key==='svc'){rs.svc=label;
+    if(label==='Plan de guardería'){rsBot('Perfecto. El 50% aplica al plan que escojas.',['Plan Express 3 días','Plan medio 15 días','Plan full mes 30 días'],'plan',2,true);return}
+    if(label==='Consulta o vacunación'){rsBot('Perfecto. Qué necesita '+rs.mascota+'?',['Consulta general','Vacuna séxtuple','Vacuna antirrábica'],'cv',2,true);return}
+    rsBot(`Perfecto. De qué tamaño es ${rs.mascota}?`,label==='Baño'?['Pequeño','Mediano','Grande']:['Pequeño','Mediano'],'size',2,true);return}
+  if(key==='plan'){rs.item=CAT[label.includes('Express')?'v24':label.includes('medio')?'v17':'v23'];rsSlots('Qué día empieza '+rs.mascota+'?');return}
+  if(key==='cv'){rs.item=CAT[label==='Consulta general'?'v9':label==='Vacuna séxtuple'?'v10':'v11'];rsSlots('Estos son los espacios libres de la clínica');return}
+  if(key==='size'){rs.item=rs.svc==='Baño'?CAT[label==='Grande'?'v5':label==='Mediano'?'v4':'v1']:CAT[label==='Pequeño'?'v6':'v7'];rsSlots('Estos son los espacios libres de la peluquería');return}
+  if(key==='slot'){rs.slot=label;rsBooked()}
+}
+function rsSlots(t){
+  const sl=[];let k=1;while(sl.length<3){const d=new Date(TODAY+k*DAY);if(d.getDay()!==0)sl.push(cap(DIAS[d.getDay()])+' '+d.getDate()+', '+['9:00 a.m.','10:30 a.m.','3:00 p.m.'][sl.length]);k++}
+  rsBot(t,sl,'slot',2,true);
+}
+function rsBooked(){
+  const it=rs.item;const half=r2(it.price/2);const plan=!!it.plan;
+  const when=plan?rs.mascota+' empieza su '+PF.DCPLAN[it.plan].name+' el '+rs.slot.split(',')[0].toLowerCase()+'.':'Quedó tu cita el '+rs.slot.toLowerCase().replace(/\.$/,'')+'.';
+  rsBot(`Listo ✅ ${when} ${esc(it.name)} cuesta ${money(it.price)} y con el cupón pagas ${money(half)}. Te escribimos un día antes para recordarte.`,null,null,3,true);
+  setTimeout(()=>{const f=document.getElementById('sim-foot');if(f&&rs)f.innerHTML=`<button class="btn pink" data-a="rs-caja">${ic('cash')}Simular el cobro en caja</button><button class="btn ghost" data-a="refsim">${ic('reset')}Empezar de nuevo</button>`},1300);
+}
+function rsCaja(){
+  if(!rs||!rs.item)return;const it=rs.item,half=r2(it.price/2),credit=r2(half/2),ref=rs.ref;
+  simBubble(`<div class="wa-sys">Cobrado en caja · ${esc(it.name)} ${money(it.price)} menos el 50% del cupón · pagó ${money(half)}</div>`);
+  rsLight(4);
+  rsBot(`Gracias por tu visita 💗 Ya eres parte de Pets Fashion. Ahora tú también tienes tu cupón para recomendar, tu código es CARLA-318.`,null,null,5,true);
+  const saldo=r2((ref.refCredit||0)+credit);rs.saldo=saldo;
+  document.getElementById('sim-note').innerHTML=`<div class="section-title">Le llegó a ${esc(first(ref))} por WhatsApp</div><div class="auto-msg"><div class="bub in" style="animation:none;max-width:100%">Hola ${esc(first(ref))} 🐾 ${rs.nuevo} usó tu cupón del Mes del Recomendado. Te abonamos ${money(credit)} de crédito, el 50% de lo que pagó, para baño, peluquería, guardería, consulta o vacunación. Tu saldo es ${money(saldo)}.<time>${nowLabel()}</time></div></div>`;
+  document.getElementById('sim-foot').innerHTML=`<button class="btn ghost" data-a="portal" data-id="${ref.id}" data-x="sim">${ic('phone')}Lo que ve ${esc(first(ref))} en su cuenta</button><button class="btn ghost" data-a="refsim">${ic('reset')}Empezar de nuevo</button>`;
+}
+
+/* ---------- Crear nueva estrategia ---------- */
+const STIPOS=[
+ {k:'cupon',l:'Cupón de descuento',icon:'gift',d:'Un porcentaje o un monto en ciertos servicios, para un grupo de familias.',name:'Cliente de vuelta'},
+ {k:'plan',l:'Plan prepagado',icon:'sun',d:'Servicios pagados por adelantado, como la tarjeta de guardería.',name:'Tarjeta de baños'},
+ {k:'puntos',l:'Puntos por compra',icon:'heart',d:'Cada compra suma puntos que se cambian por servicios.',name:'Puntos Pets Fashion'},
+ {k:'cumple',l:'Regalo de cumpleaños',icon:'cake',d:'Un regalo en la semana del cumpleaños de cada mascota.',name:'Semana de cumpleaños'},
+ {k:'recom',l:'Recompensa por recomendar',icon:'users',d:'Beneficio para el cliente nuevo y para quien lo trae.',name:'Recomendado de temporada'}
+];
+const SEGS=[['dormidos','Familias que no vienen hace más de 60 días'],['todas','Todas las familias'],['nuevos','Clientes nuevos'],['perro','Familias con perro'],['gato','Familias con gato'],['pelu','Clientes de peluquería'],['guarderia','Clientes de guardería']];
+const segName=k=>(SEGS.find(x=>x[0]===k)||SEGS[1])[1];
+function segMatch(k,h){if(!h||!h.pets||!h.pets.length||h.id==='H-MOSTRADOR')return false;const lv=lastVisit(h);switch(k){case 'todas':return true;case 'nuevos':return TODAY-h.since<60*DAY;case 'dormidos':return !!lv&&lv<TODAY-60*DAY;case 'perro':return petsOf(h).some(p=>p.sp==='perro');case 'gato':return petsOf(h).some(p=>p.sp==='gato');case 'pelu':return (byHH[h.id]||[]).some(s=>s.area==='Peluquería');case 'guarderia':return PF.dcards.some(c=>c.hh===h.id)}return false}
+function segCount(k){if(cache['seg'+k]==null)cache['seg'+k]=PF.households.filter(h=>segMatch(k,h)).length;return cache['seg'+k]}
+let sf=null;
+function stDefaults(k){const t=STIPOS.find(x=>x.k===k);return {tipo:k,name:t.name,seg:k==='cupon'?'dormidos':k==='plan'?'pelu':k==='recom'?'todas':'todas',ben:'pct',val:k==='cupon'?20:k==='plan'?5:k==='puntos'?1:k==='cumple'?15:30,grupos:k==='plan'?['Baño']:k==='puntos'?['Baño','Peluquería','Productos de tienda']:['Baño','Peluquería'],desde:TODAY,hasta:TODAY+30*DAY,limite:'una',aviso:['activar','vence']}}
+const gtxt=s=>{const g=s.grupos.map(x=>x.toLowerCase());return g.length<2?g[0]||'':g.slice(0,-1).join(', ')+' y '+g[g.length-1]};
+function stratDesc(s){
+  if(s.tipo==='plan')return `Paga ${s.val} ${s.grupos[0]==='Baño'?'baños':'servicios'} por adelantado y el siguiente es gratis. Aplica en ${gtxt(s)}, para ${segName(s.seg).toLowerCase()}.`;
+  if(s.tipo==='puntos')return `Cada dólar en ${gtxt(s)} suma ${s.val} ${s.val===1?'punto':'puntos'}. Los puntos se cambian por servicios en caja.`;
+  if(s.tipo==='cumple')return `En la semana del cumpleaños de cada mascota, ${s.val}% de descuento en ${gtxt(s)}.`;
+  if(s.tipo==='recom')return `El cliente nuevo tiene ${s.val}% en su primer servicio de ${gtxt(s)} y quien lo trae recibe crédito.`;
+  return `${s.ben==='monto'?money(s.val)+' de descuento':s.val+'% de descuento'} en ${gtxt(s)} para ${segName(s.seg).toLowerCase()}.`;
+}
+function stMsg(s){
+  const h=PF.households.find(x=>segMatch(s.seg,x)&&!x.real)||PF.households[0];const pt=PETMAP[h.pets[0]];const f=first(h),m=pt.name,lo=pt.sex==='Hembra'?'la':'lo';
+  if(s.tipo==='plan')return `Hola ${f} 🐾 Ahora puedes pagar ${s.val} ${s.grupos[0]==='Baño'?'baños':'servicios'} de ${m} por adelantado y el siguiente te sale gratis. Te lo dejamos listo en tu próxima visita?`;
+  if(s.tipo==='puntos')return `Hola ${f} 🐾 Desde hoy cada compra en Pets Fashion suma puntos para ${m}. Puedes ver tus puntos en tu cuenta y cambiarlos por un baño cuando quieras.`;
+  if(s.tipo==='cumple')return `Feliz cumpleaños a ${m} 🎂 Esta semana tiene ${s.val}% en ${gtxt(s)} de regalo de parte de Pets Fashion. Le apartamos un espacio?`;
+  if(s.tipo==='recom')return `Hola ${f} 🐾 Este mes, si nos recomiendas a un amigo, él tiene ${s.val}% en su primer servicio y tú recibes crédito para los tuyos. Tu cupón está en tu cuenta.`;
+  const dsc=s.ben==='monto'?money(s.val):s.val+'%';
+  if(s.seg==='dormidos')return `Hola ${f} 🐾 Hace tiempo no vemos a ${m} y ${lo} extrañamos. Tienes ${dsc} de descuento en ${gtxt(s)} hasta el ${fdl(s.hasta)}. Le apartamos un espacio esta semana?`;
+  return `Hola ${f} 🐾 Tienes ${dsc} de descuento en ${gtxt(s)} para ${m} hasta el ${fdl(s.hasta)}. Le apartamos un espacio esta semana?`;
+}
+function stPolicies(s){
+  const P=[`Aplica para ${segName(s.seg).toLowerCase()}.`,`Válido en ${gtxt(s)}.`];
+  if(s.limite==='una')P.push('Se usa una sola vez por familia.');
+  if(!s.grupos.includes('Productos de tienda'))P.push('No se usa en productos ni se cambia por efectivo.');
+  P.push(`Vigente del ${fdl(s.desde)} al ${fdl(s.hasta)}.`);
+  return P;
+}
+function stNew(){sf=stDefaults('cupon');openOverlay(`<div class="modal" style="max-width:1100px" id="st-modal">${stHTML()}</div>`,'center')}
+function stHTML(){
+  const s=sf;const n=segCount(s.seg);const iso=t=>{const d=new Date(t);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+  const valLabel=s.tipo==='plan'?'Servicios que paga por adelantado':s.tipo==='puntos'?'Puntos por cada dólar':s.ben==='monto'&&s.tipo==='cupon'?'Monto del descuento en dólares':s.tipo==='recom'?'Descuento del cliente nuevo, en %':'Porcentaje de descuento';
+  return `<button class="x-btn" data-a="close">${ic('close')}</button><div class="st-wrap"><div class="st-form"><span class="eyebrow">Fidelización</span><h2>Crear nueva estrategia</h2><p class="muted">Escoja el tipo, ajuste las reglas y revise en la vista previa lo que le llega a la familia.</p>
+  <div class="section-title">1. Tipo de estrategia</div><div class="st-tipos">${STIPOS.map(t=>`<button class="${s.tipo===t.k?'on':''}" data-a="st-tipo" data-k="${t.k}">${ic(t.icon)}<b>${t.l}</b><small>${t.d}</small></button>`).join('')}</div>
+  <div class="section-title">2. Reglas</div><div class="form-grid">
+   <div class="field" style="grid-column:1/-1"><label for="st-name">Nombre de la estrategia</label><input class="input" id="st-name" value="${esc(s.name)}" autocomplete="off"></div>
+   <div class="field" style="grid-column:1/-1"><label for="st-seg">Para quién</label><select class="select" id="st-seg">${SEGS.map(x=>`<option value="${x[0]}" ${s.seg===x[0]?'selected':''}>${x[1]}</option>`).join('')}</select></div>
+   ${s.tipo==='cupon'?`<div class="field"><label for="st-ben">Tipo de beneficio</label><select class="select" id="st-ben"><option value="pct" ${s.ben==='pct'?'selected':''}>Porcentaje de descuento</option><option value="monto" ${s.ben==='monto'?'selected':''}>Monto fijo en dólares</option></select></div>`:''}
+   <div class="field"><label for="st-val">${valLabel}</label><input class="input" id="st-val" type="number" min="1" value="${s.val}"></div>
+   <div class="field"><label for="st-desde">Desde</label><input class="input" id="st-desde" type="date" value="${iso(s.desde)}"></div>
+   <div class="field"><label for="st-hasta">Hasta</label><input class="input" id="st-hasta" type="date" value="${iso(s.hasta)}"></div>
+   <div class="field" style="grid-column:1/-1"><label for="st-lim">Cuántas veces la puede usar cada familia</label><select class="select" id="st-lim"><option value="una" ${s.limite==='una'?'selected':''}>Una vez</option><option value="libre" ${s.limite==='libre'?'selected':''}>Las veces que quiera mientras esté vigente</option></select></div>
+  </div>
+  <div class="field" style="margin-top:14px"><label>En qué servicios aplica</label><div class="gm-checks">${Object.keys(GRUPOS).map(g=>`<button class="${s.grupos.includes(g)?'on':''}" data-a="st-g" data-g="${g}">${ic(s.grupos.includes(g)?'check':'plus')}${g}</button>`).join('')}</div></div>
+  <div class="field" style="margin-top:14px"><label>Avisos automáticos por WhatsApp</label><div class="gm-checks">${[['activar','Al activar la estrategia'],['vence','Tres días antes de que venza'],['uso','Cuando la familia la usa']].map(([k,l])=>`<button class="${s.aviso.includes(k)?'on':''}" data-a="st-av" data-k="${k}">${ic(s.aviso.includes(k)?'check':'plus')}${l}</button>`).join('')}</div></div></div>
+  <div class="st-prev"><span class="eyebrow">3. Vista previa</span><div class="st-reach"><b class="num">${n}</b><span>familias a las que aplica${s.aviso.includes('activar')?'. Reciben el aviso por tandas para cuidar el número de WhatsApp':''}</span></div>
+  <div class="section-title">Lo que le llega a la familia por WhatsApp</div><div class="auto-msg"><div class="bub in" style="animation:none;max-width:100%">${esc(stMsg(s))}<time>Plantilla de WhatsApp</time></div></div>
+  <div class="section-title">Políticas que el sistema cumple solo</div><ul class="dc-how">${stPolicies(s).map(p=>`<li>${esc(p)}</li>`).join('')}</ul>
+  <div class="sim-hint">${ic('cash')}<span>${s.tipo==='cupon'?'En caja el descuento aparece solo cuando la familia califica, y solo sobre los servicios escogidos.':'La familia lo ve en su cuenta y en caja queda registrado en su ficha.'}</span></div>
+  <button class="btn pink big st-go" data-a="st-save">${ic('check')}Activar estrategia</button></div></div>`;
+}
+function stRead(){if(!sf)return;const v=id=>{const e=document.getElementById(id);return e?e.value:null};sf.name=(v('st-name')||'').trim()||sf.name;sf.seg=v('st-seg')||sf.seg;if(v('st-ben'))sf.ben=v('st-ben');const n=parseFloat(v('st-val'));if(n>0)sf.val=n;const d1=v('st-desde'),d2=v('st-hasta');if(d1)sf.desde=new Date(d1+'T00:00').getTime();if(d2)sf.hasta=new Date(d2+'T00:00').getTime();sf.limite=v('st-lim')||sf.limite}
+function stRedraw(){const m=document.getElementById('st-modal');if(!m)return;const y=m.scrollTop;m.innerHTML=stHTML();m.scrollTop=y}
+function stSave(){
+  stRead();if(!sf.grupos.length){toast('Escoja al menos un servicio');return}
+  if(sf.hasta<sf.desde){toast('La fecha final va después de la fecha de inicio');return}
+  const t=STIPOS.find(x=>x.k===sf.tipo);const s=Object.assign({},sf,{id:'ST'+Date.now(),tipoL:t.l,icon:t.icon,paused:false,usos:0});
+  st.strategies=st.strategies||[];st.strategies.push(s);save();bump();sf=null;fidTab='estrategias';
+  const n=segCount(s.seg);
+  if(route!=='fidelizacion'){route='fidelizacion';try{history.replaceState(null,'','#fidelizacion')}catch(e){}render()}else rerender();
+  openOverlay(`<div class="modal" style="max-width:600px"><button class="x-btn" data-a="close">${ic('close')}</button><div style="padding:32px"><span class="eyebrow">Estrategia activa</span><h2 style="font-size:26px;margin:4px 0 10px">${esc(s.name)}</h2><p class="muted" style="margin:0 0 16px">${esc(stratDesc(s))}</p>
+  <ul class="dc-how"><li>${s.aviso.includes('activar')?n+' familias reciben el aviso por WhatsApp, por tandas.':'No se manda aviso al activarla. Las familias lo ven en su cuenta.'}</li>${s.tipo==='cupon'?'<li>Cuando una de esas familias llegue a caja, el descuento aparece solo y se aplica con un toque.</li>':''}<li>Se puede pausar en cualquier momento desde Fidelización.</li></ul>
+  <div class="drawer-actions" style="margin-top:18px">${s.tipo==='cupon'?`<button class="btn pink" data-a="st-try" data-id="${s.id}">${ic('cash')}Probarla en caja</button>`:''}<button class="btn ghost" data-a="close">Ver mis estrategias</button></div></div></div>`,'center');
+}
+function stView(id){const s=(st.strategies||[]).find(x=>x.id===id);if(!s)return;openOverlay(`<div class="modal" style="max-width:640px"><button class="x-btn" data-a="close">${ic('close')}</button><div style="padding:30px"><span class="eyebrow">${esc(s.tipoL)}</span><h2 style="font-size:24px;margin-bottom:12px">${esc(s.name)}</h2><div class="auto-msg"><div class="bub in" style="animation:none;max-width:100%">${esc(stMsg(s))}<time>Plantilla de WhatsApp</time></div></div><div class="section-title">Políticas</div><ul class="dc-how">${stPolicies(s).map(p=>`<li>${esc(p)}</li>`).join('')}</ul>${s.tipo==='cupon'&&!s.paused?`<div class="drawer-actions" style="margin-top:16px"><button class="btn pink sm" data-a="st-try" data-id="${s.id}">${ic('cash')}Probarla en caja</button></div>`:''}</div></div>`,'center')}
+const stKey=(s,hid)=>s.id+'|'+hid;
+function stForFamily(hid){const h=HHMAP[hid];return (st.strategies||[]).filter(s=>!s.paused&&s.tipo==='cupon'&&TODAY>=s.desde-DAY&&TODAY<=s.hasta+DAY&&segMatch(s.seg,h)&&!(s.limite==='una'&&(st.stUsed||{})[stKey(s,hid)]))}
+function stBase(s){return pos.lines.filter(l=>inGrupos(l.id,s.grupos)).reduce((a,l)=>a+CAT[l.id].price*l.q,0)}
+function stApply(id){
+  const s=(st.strategies||[]).find(x=>x.id===id);if(!s||!pos.hh)return;const base=stBase(s);if(base<=0)return;
+  const disc=s.ben==='monto'?Math.min(s.val,base):r2(base*s.val/100);const l0=pos.lines.find(l=>inGrupos(l.id,s.grupos));const k='sd-'+s.id;
+  CAT[k]={id:k,name:s.name+', '+(s.ben==='monto'?money(s.val):s.val+'%')+' de descuento',price:-r2(disc),tax:CAT[l0.id].tax||0,kind:'descuento',cat:'Descuento'};posAdd(k,[]);
+}
+function stTry(id){
+  const s=(st.strategies||[]).find(x=>x.id===id);if(!s)return;
+  const h=PF.households.find(x=>segMatch(s.seg,x)&&!x.real&&!(st.stUsed||{})[stKey(s,x.id)]&&petsOf(x).some(p=>p.sp==='perro'))||PF.households.find(x=>segMatch(s.seg,x));if(!h)return;
+  const p=petsOf(h).find(x=>x.sp==='perro')||petsOf(h)[0];const g=s.grupos[0];
+  const svc=g==='Baño'?(GRUPOS['Baño'].includes(p.groomSvc)?p.groomSvc:'v1'):g==='Peluquería'?'v6':g==='Guardería'?'v16':g==='Consulta o vacunación'?'v9':(PF.products.find(x=>x.stock>0&&!x.gift)||PF.products[0]).id;
+  pos={hh:h.id,pets:[p.id],lines:[{id:svc,q:1,pets:[p.id]}],pay:'Yappy',deliv:false,zone:'',fiscal:'cf'};
+  closeOverlay();if(route!=='caja')location.hash='caja';else rerender();
+  setTimeout(()=>toast(h.name+' califica para '+s.name+'. Toque Aplicar en la venta'),400);
+}
+
+/* el formulario se actualiza al cambiar cualquier regla */
+document.addEventListener('change',e=>{const t=e.target;if(!t.closest||!t.closest('#st-modal')||!sf)return;stRead();stRedraw()});
+
 
 /* ---------- Pedidos ---------- */
 const OST=['Nuevo','Pagado','En ruta','Entregado'];
@@ -1081,9 +1388,9 @@ function openFamily(id){
   openOverlay(`<div class="drawer"><button class="x-btn" data-a="close">${ic('close')}</button>
   <div class="fam-head">${pstack(hh.pets,'lg')}<div><h2>${esc(hh.name)}</h2><p>${esc(hh.phone)} · ${esc(hh.zone)} · Cliente desde ${MESL[new Date(hh.since).getMonth()]} ${new Date(hh.since).getFullYear()}</p><div class="opp-tags">${statusChip(statusOf(hh))}${hh.bestHour?`<span class="chip outline">${ic('clock')}Responde mejor a las ${hh.bestHour}</span>`:''}${hh.real?'<span class="chip dark">Compras reales del chat</span>':''}</div></div></div>
   <div class="mini-kpis"><div><small>Gasto 12 meses</small><b>${money(a,1)}</b></div><div><small>Visitas</small><b>${visits}</b></div><div><small>Ticket promedio</small><b>${money(visits?a/visits:0,1)}</b></div><div><small>Saldo</small><b style="color:${hh.balance>0?'var(--warn)':'inherit'}">${money(hh.balance||0)}</b></div></div>
-  <div class="drawer-actions"><button class="btn primary sm" data-a="statement" data-id="${id}">${ic('receipt')}Estado de cuenta</button><button class="btn ghost sm" data-a="sell" data-id="${id}">${ic('cash')}Nueva venta</button>${ops[0]?`<button class="btn wa sm" data-a="sim" data-id="${ops[0].id}">${ic('send')}Escribirle</button>`:''}</div>
+  <div class="drawer-actions"><button class="btn primary sm" data-a="statement" data-id="${id}">${ic('receipt')}Estado de cuenta</button><button class="btn ghost sm" data-a="sell" data-id="${id}">${ic('cash')}Nueva venta</button><button class="btn ghost sm" data-a="portal" data-id="${id}">${ic('phone')}Lo que ve la familia</button>${ops[0]?`<button class="btn wa sm" data-a="sim" data-id="${ops[0].id}">${ic('send')}Escribirle</button>`:''}</div>
   ${ops.length?`<div class="section-title">Lo que le toca según el radar</div><div class="card">${ops.map(o=>`<div class="opp" style="grid-template-columns:minmax(0,1fr) auto"><div class="opp-main"><strong>${TYPES[o.type].label}</strong><p style="margin-bottom:0">${esc(oppLine(o))}</p></div><button class="btn ghost sm" data-a="sim" data-id="${o.id}">${ic('phone')}Mensaje</button></div>`).join('')}</div>`:''}
-  <div class="section-title">Mascotas</div>${petsOf(hh).map(p=>petCard(p)).join('')}
+  ${famBenefits(hh)}<div class="section-title">Mascotas</div>${petsOf(hh).map(p=>petCard(p)).join('')}
   ${hh.notes?`<div class="section-title">Notas</div><div class="card panel" style="padding:14px 16px;font-size:13px">${esc(hh.notes)}</div>`:''}
   <div class="section-title">Historial</div><div class="hist">${sales.slice(0,14).map(s=>`<div class="hist-row"><span><b>${fd(s.t)}</b><small>${new Date(s.t).getFullYear()}</small></span><span class="ic">${ic(areaIc[s.area]||'bag')}</span><span style="min-width:0"><b style="font-weight:600">${esc(s.lines.filter(l=>l.id!=='s0').map(l=>(l.q>1?l.q+' × ':'')+l.name).join(', '))}</b><small>${esc(s.area)} · ${esc(s.channel)} · ${esc(s.pay)}${s.lines[0].pets.length?' · '+esc(names(s.lines[0].pets)):''}</small></span><b>${money(s.total)}</b></div>`).join('')||'<div class="empty">Sin compras registradas.</div>'}</div></div>`);
 }
@@ -1213,7 +1520,9 @@ function downloadCSV(){
 
 /* ---------- Asistente ---------- */
 const QS=[
+ 'Cómo creo una estrategia nueva de fidelización?',
  'Cómo registro a un cliente nuevo que viene recomendado?',
+ 'Cómo funciona la tarjeta de guardería?',
  'Cómo le cobro a una familia lo de clínica, peluquería y tienda juntos?',
  'Cuánto dinero hay en recompras esta semana?',
  'Quiénes compraban Royal Canin y no han vuelto?',
@@ -1225,7 +1534,9 @@ const QS=[
 let aiLog=[];
 function aiAnswer(q){
   const s=q.toLowerCase();
-  if(/recomendad/.test(s))return {h:'Así se registra a un cliente que viene recomendado.',list:['Entre a Recomendados y toque Registrar cliente recomendado.','Escriba el código, el nombre o el teléfono de quien lo recomendó. El sistema lo encuentra solo.','Ponga el nombre del cliente nuevo y de su mascota, y toque Registrar.','Los dos reciben un WhatsApp. Cuando el cliente nuevo pase por caja, el 50% se aplica con un toque y el crédito le llega a quien recomendó.'],base:'Respuesta del manual del sistema. El asistente también responde dudas de uso del equipo, como esta.'};
+  if(/estrategia|fideliz/.test(s))return {h:'Así se crea una estrategia nueva.',list:['Entre a Fidelización y toque Crear nueva estrategia.','Escoja el tipo, por ejemplo Cupón de descuento, y póngale nombre.','Diga para quién es, el descuento, en qué servicios aplica y hasta cuándo.','En la vista previa ve el mensaje que le llega a la familia y a cuántas familias aplica. Toque Activar estrategia.','Desde ese momento el descuento aparece solo en caja cuando llega una familia que califica.'],base:'Respuesta del manual del sistema.'};
+  if(/guarder|daycare|tarjeta/.test(s))return {h:'La tarjeta de guardería es la misma de papel, pero digital.',list:['Se vende el plan en recepción, Plan full mes, Plan medio o Plan Express. Al cobrarlo la tarjeta se activa sola.','Cada mañana, en Agenda o en Fidelización, se toca Marcar entrada. El día queda escrito con fecha y hora.','La familia recibe por WhatsApp cuántos días le quedan y cuándo vence.','Con 2 días disponibles le llega el link de Yappy para renovar, sin que nadie lo escriba.'],base:'Respuesta del manual del sistema.'};
+  if(/recomendad/.test(s))return {h:'Así funciona un cliente que viene recomendado.',list:['Lo normal es que escriba por WhatsApp con el código del cupón. El sistema lo valida, lo registra y le agenda su primer servicio.','Si llega directo a la tienda, entre a Fidelización, Mes del Recomendado, y toque Registrar en recepción. Busque a quien recomendó por su código, nombre o teléfono.','En caja aparece el 50% de su primer servicio. Se aplica con un toque y solo en peluquería, baño, guardería, consulta o vacunación.','Al cobrar, a quien recomendó se le abona de crédito el 50% de lo que pagó el nuevo y le llega el aviso por WhatsApp.'],base:'Respuesta del manual del sistema.'};
   if(/cobr.*junt|junt.*cobr/.test(s))return {h:'Todo se cobra en una sola venta desde Caja y recepción.',list:['Arriba aparecen las cuentas que mandan la clínica, la peluquería y el hotel.','Toque Cobrar en la de la familia. Si tiene otra cuenta pendiente, toque Agregar y se suma a la misma venta.','Agregue lo que se lleve de la tienda, por ejemplo el alimento.','Escoja cómo paga y toque Cobrar. Sale una sola factura electrónica con todo.'],base:'Respuesta del manual del sistema.'};
   if(/recompra|semana|dinero/.test(s)){const a=activeOpps();const by={};a.forEach(o=>{by[o.type]=by[o.type]||{n:0,v:0};by[o.type].n++;by[o.type].v+=o.value});return {h:`Hay <b>${money(a.reduce((x,o)=>x+o.value,0),1)}</b> en ${a.length} recompras listas para pedir.`,list:Object.entries(by).map(([k,v])=>`${TYPES[k].label}, ${v.n} avisos por ${money(v.v,1)}`),base:'Suma del precio de cada producto o servicio que el radar detectó para los próximos días.'}}
   if(/royal|no han vuelto|dejaron/.test(s)){const all=radar().filter(o=>o.type==='dormido'&&/Royal/.test(o.prod.name)).sort((x,y)=>y.annual-x.annual);const d=all.slice(0,6);return {h:`${all.length?all.length+' familias':'Ninguna familia'} que compraban Royal Canin dejaron de volver. Estas son las ${d.length} de mayor gasto.`,list:d.map(o=>`${o.hh.name}, ${names(o.pets)}. Última compra el ${fdl(o.last)}, gastaba ${money(o.annual,1)} al año`),base:'Familias cuya frecuencia normal de compra ya pasó por más de 10 días sin volver.',btn:d[0]?d[0].id:null}}
@@ -1277,7 +1588,7 @@ document.addEventListener('click',e=>{
   if(a==='bg'){if(e.target===el)closeOverlay();return}
   switch(a){
     case 'menu':document.body.classList.toggle('nav-open');break;
-    case 'close':if(el.tagName!=='A')e.preventDefault();closeOverlay();if(route==='radar'||route==='hoy'||route==='pedidos'||route==='agenda')rerender();break;
+    case 'close':if(el.tagName!=='A')e.preventDefault();closeOverlay();if(['radar','hoy','pedidos','agenda','fidelizacion','familias'].includes(route))rerender();break;
     case 'ai':openAI();break;
     case 'search':openSearch();break;
     case 'sim':openSim(id);break;
@@ -1317,8 +1628,29 @@ document.addEventListener('click',e=>{
     case 'gm-restart':gm.step=1;gm.antes=null;gm.despues=null;gm.llegada=[];gm.checks=gm.items.map(()=>false);gmRedraw();break;
     case 'ref-new':refNew();break;
     case 'ref-save':refSave();break;
-    case 'ref-disc':{const r=refPending(pos.hh);if(!r)break;const svc=CAT[r.svc];const k='rd-'+r.id;CAT[k]={id:k,name:'Descuento por venir recomendado, 50% de '+svc.name,price:-r2(svc.price*.5),tax:svc.tax,kind:'descuento',cat:'Descuento'};if(!pos.lines.some(l=>l.id===svc.id))posAdd(svc.id,pos.pets.slice());posAdd(k,[]);rerender();break}
-    case 'ref-credit':{const h=HHMAP[pos.hh];const k='rc-'+h.id;CAT[k]={id:k,name:'Crédito de recomendados',price:-h.refCredit,tax:0,kind:'descuento',cat:'Descuento'};posAdd(k,[]);rerender();break}
+    case 'ref-disc':{const r=refPending(pos.hh);if(!r)break;let el=pos.lines.find(l=>refOK(l.id));if(!el){posAdd(refOK(r.svc)?r.svc:'v1',pos.pets.slice());el=pos.lines.find(l=>refOK(l.id))}const svc=CAT[el.id];const k='rd-'+r.id;CAT[k]={id:k,name:'Cupón Mes del Recomendado, 50% de '+svc.name,price:-r2(svc.price*.5),tax:svc.tax,kind:'descuento',cat:'Descuento',svc:svc.id};posAdd(k,[]);rerender();break}
+    case 'ref-credit':{const h=HHMAP[pos.hh];const base=pos.lines.filter(l=>refOK(l.id)).reduce((a,l)=>a+CAT[l.id].price*l.q,0);if(base<=0)break;const k='rc-'+h.id;CAT[k]={id:k,name:'Crédito de recomendados',price:-r2(Math.min(h.refCredit,base)),tax:0,kind:'descuento',cat:'Descuento'};posAdd(k,[]);rerender();break}
+    case 'st-apply':stApply(id);rerender();break;
+    case 'fid-tab':fidTab=el.dataset.t;if(route!=='fidelizacion')location.hash='fidelizacion';else render();break;
+    case 'st-new':stNew();break;
+    case 'st-tipo':stRead();{const keep=sf?{desde:sf.desde,hasta:sf.hasta}:{};sf=Object.assign(stDefaults(el.dataset.k),keep)}stRedraw();break;
+    case 'st-g':{stRead();const g=el.dataset.g;const i=sf.grupos.indexOf(g);if(i>=0)sf.grupos.splice(i,1);else sf.grupos.push(g);stRedraw();break}
+    case 'st-av':{stRead();const k=el.dataset.k;const i=sf.aviso.indexOf(k);if(i>=0)sf.aviso.splice(i,1);else sf.aviso.push(k);stRedraw();break}
+    case 'st-save':stSave();break;
+    case 'st-view':stView(id);break;
+    case 'st-toggle':{const x=(st.strategies||[]).find(y=>y.id===id);if(x){x.paused=!x.paused;save();rerender();toast(x.paused?'Estrategia pausada. Ya no aparece en caja':'Estrategia activa otra vez')}break}
+    case 'st-try':stTry(id);break;
+    case 'dc-open':openCard(id);break;
+    case 'dc-in':dcIn(id);break;
+    case 'dc-obs':dcObs(id);break;
+    case 'dc-renew':dcRenew(id);break;
+    case 'dc-sell':dcSell();break;
+    case 'dc-sell-save':dcSellSave();break;
+    case 'dc-f':dcF=el.dataset.f;rerender();break;
+    case 'portal':showPortal(id,el.dataset.x==='sim'&&rs?rs.saldo:null);break;
+    case 'refsim':openRefSim();break;
+    case 'rs':rsTap(el.dataset.k,+el.dataset.i);break;
+    case 'rs-caja':rsCaja();break;
     case 'fac-f':facF=el.dataset.f;facLimit=30;rerender();break;
     case 'fac-more':facLimit+=30;rerender();break;
     case 'inv':{const r=invoices().find(x=>x.id===id);if(r)showInvoice(r);break}
