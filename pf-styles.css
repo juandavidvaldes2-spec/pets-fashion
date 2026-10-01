@@ -973,6 +973,13 @@ table.t{width:100%;border-collapse:collapse;font-size:13.5px}
 .st-reach span{color:var(--ink2);font-size:13px}
 .st-prev .sim-hint{margin-top:16px}
 .st-go{width:100%;margin-top:16px}
+.st-prev-in{position:sticky;top:0}
+.st-prev-in .st-reach{margin-top:10px}
+.st-rule{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;background:var(--pf-tint);border:1px solid #f5d2de;border-radius:14px;padding:14px}
+.st-rule .field:first-child{grid-column:1/-1}
+.st-sentence{grid-column:1/-1;display:flex;gap:10px;align-items:flex-start;background:#fff;border-radius:10px;padding:10px 12px;font-weight:600;font-size:14px;line-height:1.4}
+.st-sentence .icon{width:18px;height:18px;color:var(--pf);flex-shrink:0;margin-top:2px}
+.st-sentence small{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);font-weight:700;margin-bottom:2px}
 
 @media (max-width:1180px){
   .plans{grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -996,4 +1003,5 @@ table.t{width:100%;border-collapse:collapse;font-size:13.5px}
   .dc-tl{grid-template-columns:58px 32px minmax(0,1fr)}
   .dc-tl .btn{grid-column:3;justify-self:start}
   .strat-kpis b{font-size:15px}
+  .st-rule{grid-template-columns:minmax(0,1fr)}
 }
