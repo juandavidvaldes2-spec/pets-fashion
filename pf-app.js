@@ -1070,7 +1070,7 @@ function dcPaper(c){
 }
 function openCard(id,sent){
   const c=PF.dcards.find(x=>x.id===id);if(!c)return;const p=PETMAP[c.pet],h=HHMAP[c.hh];const left=dcLeft(c);
-  const msg=sent?`Hola ${first(h)} 🐾 ${p.name} ya llegó a la guardería a las ${sent}. Le ${left===1?'queda 1 día':'quedan '+left+' días'} de su ${PF.DCPLAN[c.plan].name}, la tarjeta vence el ${fdl(c.vence)}.${left<=2?' Si quieres renovarlo, te mando el link de Yappy por aquí mismo.':''}`:'';
+  const msg=sent?`Hola ${first(h)} 🐾 ${p.name} ya llegó a la guardería a las ${sent.replace(/\.$/,'')}. Le ${left===1?'queda 1 día':'quedan '+left+' días'} de su ${PF.DCPLAN[c.plan].name}, la tarjeta vence el ${fdl(c.vence)}.${left<=2?' Si quieres renovarlo, te mando el link de Yappy por aquí mismo.':''}`:'';
   const canMark=!dcToday(c)&&left>0&&c.vence>=TODAY;
   openOverlay(`<div class="modal" style="max-width:1000px"><button class="x-btn" data-a="close">${ic('close')}</button><div class="dc-modal"><div class="dc-paper-wrap">${dcPaper(c)}</div><div class="dc-side"><span class="eyebrow">Tarjeta de guardería digital</span><h2>${esc(p.name)} · ${esc(PF.DCPLAN[c.plan].name)}</h2><p class="dc-sum">${dcChip(c)}<span><b>${left}</b> ${left===1?'día disponible':'días disponibles'} de ${c.days} · vence ${rel(dd(c.vence))}</span></p>
   <div class="dc-acts">${dcToday(c)?`<span class="sent-mark">${ic('check')}Ya se marcó la entrada de hoy</span>`:canMark?`<button class="btn pink big" data-a="dc-in" data-id="${c.id}">${ic('check')}Marcar la entrada de hoy</button>`:''}
